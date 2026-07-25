@@ -1,13 +1,20 @@
 module galois_lfsr #(
-
   parameter int WIDTH = 4,
-  parameter bit INIT_SEED = 1
+  parameter bit [WIDTH-1:0] INIT_SEED = 1
   )
 (
   input logic clk,
   input logic rst_n,
   output logic [3:0] out
 );
+
+ifndef DISABLE_ELAB_CHECKS
+  if(WIDTH < 2 || WIDTH > 64) begin 
+    $error("__FILE__ : __LINE__",)
+
+endif //DISABLE_ELAB_CHECKS
+
+
 // Synthesizable TAPS Look-Up Table (0-Indexed, aligned for i-1 checks)
 // Array bounds [0:64] match the LFSR WIDTH parameter directly.
 localparam bit [63:0] TAPS_LUT [0:64] = '{
