@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Pre-commit lint gate for SystemVerilog RTL blocks.
+# Runs `verilator --lint-only` on every staged blocks/*/rtl/*.sv file so a
+# bad elaboration-time parameter (or any other lint issue) can't get
+# committed, regardless of whether anyone ran a sim first.
+#
+# Activate once per clone with: git config core.hooksPath .githooks
+
+files=$(git diff --cached --name-only --diff-filter=ACM -- 'blocks/*/rtl/*.sv')
+[ -z "$files" ] && exit 0
+
+status=0
+for f in $files; do
+  echo "Linting $f..."
+  verilator --lint-only -Wall -Icommon/rtl "$f" || status=1
+done
+
+if [ "$status" -ne 0 ]; then
+  echo "Lint/elaboration checks failed -- commit aborted." >&2
+fi
+exit $status

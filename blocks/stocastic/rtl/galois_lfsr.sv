@@ -1,3 +1,4 @@
+`include "ma_assert.svh"
 module galois_lfsr #(
   parameter int WIDTH = 4,
   parameter bit [WIDTH-1:0] INIT_SEED = 1
@@ -8,11 +9,7 @@ module galois_lfsr #(
   output logic [3:0] out
 );
 
-ifndef DISABLE_ELAB_CHECKS
-  if(WIDTH < 2 || WIDTH > 64) begin 
-    $error("__FILE__ : __LINE__",)
-
-endif //DISABLE_ELAB_CHECKS
+`MA_ASSERT_INIT(ValidLFSRCheck, WIDTH inside {[2:64]})
 
 
 // Synthesizable TAPS Look-Up Table (0-Indexed, aligned for i-1 checks)
