@@ -54,3 +54,5 @@ blocks/<name>/
 Before assuming *why* a module is structured a certain way, check `docs/adr/README.md` first — it's an index of Architecture Decision Records (MADR-based: context, alternatives considered, what was chosen and why, and how it was verified). This is the authoritative source for design rationale in this repo; code comments intentionally stay terse. `docs/design-specs/` holds the planning documents that produced the ADRs, for deeper background if an ADR references one.
 
 When making a new non-obvious design decision, add an ADR (`docs/adr/NNNN-<slug>.md`, next sequential number, same template) rather than leaving the reasoning only in conversation history.
+
+**Before committing**, check the staged diff for exactly this: does it embody a decision someone would reasonably ask "why did you do it this way?" about (a chosen mechanism over rejected alternatives, a non-obvious tradeoff, a correctness methodology) — not just a bug fix or mechanical change? If so, write the ADR in the same commit (or the one right before it), not after. A decision made and committed without its ADR tends to never get one.
