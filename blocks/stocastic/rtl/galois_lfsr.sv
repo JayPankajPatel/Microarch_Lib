@@ -1,15 +1,18 @@
 `include "ma_assert.svh"
 module galois_lfsr #(
   parameter int WIDTH = 4,
-  parameter bit [WIDTH-1:0] INIT_SEED = 1
+  parameter bit [WIDTH-1:0] INIT_SEED = WIDTH'(1)
   )
 (
   input logic clk,
   input logic rst_n,
-  output logic [3:0] out
+  output logic [WIDTH-1:0] out
 );
 
-`MA_ASSERT_INIT(ValidLFSRCheck, WIDTH inside {[2:64]})
+// we can only have an LFSR that is 2 bits to 64 bits inclusive, wide based on
+// the polynomial array we have, if more is needed, the array only must change
+`MA_ASSERT_INIT(ValidLFSRSizeCheck, WIDTH inside {[2:64]}) // 2 to 64 inclusive
+`MA_ASSERT_INIT(NoZeroSeed, INIT_SEED != '0) // 2 to 64 inclusive
 
 
 // Synthesizable TAPS Look-Up Table (0-Indexed, aligned for i-1 checks)
@@ -17,68 +20,83 @@ module galois_lfsr #(
 localparam bit [63:0] TAPS_LUT [0:64] = '{
     0  : 64'h0,
     1  : 64'h0,
-    2  : 64'h2,                 // q[1] (Tap at 1)
-    3  : 64'h4,                 // q[2] (Tap at 2)
-    4  : 64'h4,                 // q[2] (Tap at 2)
-    5  : 64'h4,                 // q[2] (Tap at 2)
-    6  : 64'h10,                // q[4] (Tap at 4)
-    7  : 64'h20,                // q[5] (Tap at 5)
+    2  : 64'h1,
+    3  : 64'h1,
+    4  : 64'h4,                 // q[2] 
+    5  : 64'h4,                 // q[2] 
+    6  : 64'h10,                // q[4] 
+    7  : 64'h20,                // q[5] 
     8  : 64'h38,                // q[5], q[4], q[3]
     9  : 64'h10,                // q[4]
     10 : 64'h40,                // q[6]
     11 : 64'h100,               // q[8]
-    12 : 64'h700,               // q[10], q[9], q[8]
-    13 : 64'hE00,               // q[11], q[10], q[9]
-    14 : 64'h1C00,              // q[12], q[11], q[10]
+    12 : 64'h29,
+    13 : 64'hD,
+    14 : 64'h15,
     15 : 64'h2000,              // q[13]
-    16 : 64'h5000,              // q[14], q[12]
+    16 : 64'h16,
     17 : 64'h2000,              // q[13]
     18 : 64'h400,               // q[10]
-    19 : 64'hE0000,             // q[17], q[16], q[15]
+    19 : 64'h3F1C,
     20 : 64'h10000,             // q[16]
     21 : 64'h40000,             // q[18]
     22 : 64'h100000,            // q[20]
     23 : 64'h20000,             // q[17]
-    24 : 64'hE00000,            // q[22], q[21], q[20]
+    24 : 64'h52D038,
     25 : 64'h200000,            // q[21]
-    26 : 64'h22,                // q[5], q[1]
-    27 : 64'h12,                // q[4], q[1]
+    26 : 64'h30E186,
+    27 : 64'h20F36E1,
     28 : 64'h1000000,           // q[24]
     29 : 64'h4000000,           // q[26]
-    30 : 64'h700000,            // q[22], q[21], q[20]
+    30 : 64'h1A41AADB,
     31 : 64'h8000000,           // q[27]
-    32 : 64'hC000000,           // q[27], q[26]
+    32 : 64'h4C256ABF,
     33 : 64'h1000,              // q[12]
-    34 : 64'h6002,              // q[14], q[13], q[1]
+    34 : 64'h8C59C9D8,
     35 : 64'h2,                 // q[1]
     36 : 64'h400,               // q[10]
     37 : 64'hA02,               // q[11], q[9], q[1]
-    38 : 64'h32,                // q[5], q[4], q[1]
+    38 : 64'hDF94BEB7B,
     39 : 64'h8,                 // q[3]
     40 : 64'h140002,            // q[20], q[18], q[1]
     41 : 64'h4,                 // q[2]
-    42 : 64'h700000,            // q[22], q[21], q[20]
+    42 : 64'h12B527E1CA9,
     43 : 64'h38,                // q[5], q[3], q[2]
     44 : 64'h32,                // q[5], q[4], q[1]
-    45 : 64'hE,                 // q[3], q[2], q[1]
-    46 : 64'h180002,            // q[20], q[19], q[1]
+    45 : 64'hF65965338FC,
+    46 : 64'hF33F4E76EA8,
     47 : 64'h10,                // q[4]
-    48 : 64'hC000002,           // q[27], q[26], q[1]
+    48 : 64'h6105363E81AD,
     49 : 64'h100,               // q[8]
-    50 : 64'hC000002,           // q[26], q[25], q[1]
-    51 : 64'h2C,                // q[5], q[2], q[1]
+    50 : 64'h3D52A62C025E,
+    51 : 64'h2BCF6321BD22D,
     52 : 64'h4,                 // q[2]
-    53 : 64'h26,                // q[5], q[2], q[1]
-    54 : 64'h1800000002,        // q[36], q[35], q[1]
+    53 : 64'hD6CFB12C54D46,
+    54 : 64'hCFD49B5615D8E,
     55 : 64'h800000,            // q[23]
-    56 : 64'h600000400000,      // q[34], q[32], q[21]
+    56 : 64'h465BF4191DA4B1,
     57 : 64'h40,                // q[6]
     58 : 64'h40000,             // q[18]
     59 : 64'h300002,            // q[21], q[20], q[1]
-    60 : 64'h2,                 // q[1]
-    61 : 64'hC002,              // q[15], q[14], q[1]
-    62 : 64'h180000000000002,    // q[56], q[55], q[1]
-    63 : 64'h400000000000000,   // q[61]
-    64 : 64'hE000000000000000   // q[62], q[60], q[59]
+    60 : 64'h6EEF9714BE6A446,
+    61 : 64'h99FB648893E3DAB,
+    62 : 64'hD83982E9558D928,
+    63 : 64'h1B8D3CB42068B07D,
+    64 : 64'h268A2A32F60F159C
 };
+
+logic [WIDTH-1:0] q;
+always_ff @(posedge clk or negedge rst_n) begin 
+  if(!rst_n) begin 
+    q <= INIT_SEED; 
+  end
+  else begin
+    for(int i = WIDTH-1; i >= 0; i--) begin 
+      q[i] <= ((TAPS_LUT[WIDTH][i]) ? (q[(i+1) % WIDTH] ^ q[0]) : (q[(i+1) % WIDTH]));
+    end
+  end
+end
+
+assign out = q; 
+
 endmodule : galois_lfsr

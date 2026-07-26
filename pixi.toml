@@ -1,0 +1,15 @@
+[workspace]
+authors = ["JayPankajPatel <jayp102501@gmail.com>"]
+channels = ["conda-forge"]
+name = "Microarch_Lib"
+platforms = ["linux-64", "osx-64"]
+version = "0.1.0"
+
+[tasks]
+setup-sby = "rm -rf /tmp/sby-src-microarch && git clone --depth 1 https://github.com/YosysHQ/sby /tmp/sby-src-microarch && make -C /tmp/sby-src-microarch install PREFIX=$CONDA_PREFIX && rm -rf /tmp/sby-src-microarch"
+
+[dependencies]
+verilator = ">=5.50,<6"
+yosys = ">=0.67,<0.68"
+click = ">=8.4.2,<9"
+libz3 = ">=4.16.0,<5"
