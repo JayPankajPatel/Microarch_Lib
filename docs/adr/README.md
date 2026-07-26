@@ -13,3 +13,4 @@ To add a new one: copy `template.md` (base format is [MADR](https://adr.github.i
 | [0002](0002-taps-lut-correctness-methodology.md) | `TAPS_LUT` correctness is established by algebraic primitivity checking, not by trusting the source table | Accepted |
 | [0003](0003-pixi-toolchain.md) | Use pixi for a reproducible, cross-platform verification toolchain | Accepted |
 | [0004](0004-precommit-lint-scope-svh-headers.md) | Pre-commit lint hook globs only `blocks/*/rtl/*.sv`; `.svh` headers are covered transitively, not directly | Accepted |
+| [0005](0005-taps-lut-sparse-vs-dense-ppa.md) | `TAPS_LUT` uses the sparse (low Hamming-weight) replacement masks, confirmed by real LibreLane+sky130 PPA numbers | Accepted |

@@ -68,7 +68,11 @@ first primitive candidate found.
 
 - More taps means more area and more dynamic power (each tap is one XOR
   gate), scaling with however many instances of this LFSR end up
-  instantiated in a larger design.
+  instantiated in a larger design. This was a qualitative prediction when
+  written; it was since confirmed with real LibreLane+sky130 PPA numbers
+  in [0005](0005-taps-lut-sparse-vs-dense-ppa.md) (~18% lower core area at
+  the widest gap, power difference inside measurement noise), and the
+  table now in `galois_lfsr.sv` is the sparse one that ADR recommends.
 - More taps does **not** meaningfully affect critical-path timing in this
   specific implementation: the feedback bit (`q[0]`) is broadcast in
   parallel to every tap position (`q[i+1] ^ (q[0] & mask[i])`), so the
