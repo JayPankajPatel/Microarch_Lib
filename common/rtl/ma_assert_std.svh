@@ -6,4 +6,4 @@
 // procedural block -- see IEEE 1800-2017 20.11, Example 1.
 `define MA_ASSERT_INIT(__name, __prop) \
   if (!(__prop)) \
-    $error("%s:%0d: [%s] check failed", `__FILE__, `__LINE__, `MA_STRINGIFY(__name));
+    $fatal("%s:%0d: [%s] check failed", `__FILE__, `__LINE__, `MA_STRINGIFY(__name));
