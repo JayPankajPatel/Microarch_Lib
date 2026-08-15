@@ -160,3 +160,12 @@ largest gap. Widths with a smaller tap-count gap will show a
 proportionally smaller area effect; this was not re-measured per width, as
 the fanout/timing argument in ADR 0002 and the structural relationship
 between tap count and XOR gate count apply uniformly.
+
+The primitivity re-verification here, like ADR 0002's original check, was
+run against the recurrence in place at the time. `galois_lfsr.sv` was
+later rewritten to a real distributed-tap Galois recurrence, which reads
+this (sparse) table at a mirrored index
+(`TAPS_LUT[WIDTH][WIDTH-1-i]`, not `[i]`). The per-width polynomial and
+primitivity result are unchanged; see
+[0006](0006-galois-lfsr-tap-mirroring.md) for why the mirrored reading is
+required and how it was re-verified across the full width range.

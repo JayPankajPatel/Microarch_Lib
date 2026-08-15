@@ -89,15 +89,25 @@ localparam bit [63:0] TAPS_LUT [0:64] = '{
     64 : 64'h4040000000000020
 };
 
-logic [WIDTH-1:0] q;
+localparam n = WIDTH; 
+logic [n-1:0] q;
+logic feedback; 
+assign feedback = q[n-1]; 
 always_ff @(posedge clk or negedge rst_n) begin 
   if(!rst_n) begin 
     q <= INIT_SEED; 
   end
   else begin
-    for(int i = WIDTH-1; i >= 0; i--) begin 
-      q[i] <= ((TAPS_LUT[WIDTH][i]) ? (q[(i+1) % WIDTH] ^ q[0]) : (q[(i+1) % WIDTH]));
-    end
+    q[0] <= feedback;
+    for(int i = 1; i < n; i = i + 1) begin
+      // TAPS_LUT bit b always means polynomial term x^(b+1) (ascending
+      // degree with bit index). This Galois circuit needs the tap for
+      // degree k injected at stage (n-k) -- descending degree as stages
+      // move away from the feedback re-entry point at q[n-1] -- so reading
+      // the mask at [n-1-i] (not [i]) corrects for that ascending-vs-
+      // descending mismatch. See docs/adr/0006.
+      q[i] <= (q[i-1]) ^ (feedback & TAPS_LUT[n][n-1-i]);
+  end
   end
 end
 

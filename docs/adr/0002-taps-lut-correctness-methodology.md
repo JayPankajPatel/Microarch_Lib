@@ -101,4 +101,11 @@ before repeating — including a full 524,287-state run at `WIDTH=19`.
 
 ## More Information
 
-None.
+The primitivity check here was run against the recurrence in place at
+the time (an external-reduction, Fibonacci-shaped feedback network).
+`galois_lfsr.sv` was later rewritten to a real distributed-tap Galois
+recurrence, which reads `TAPS_LUT` at a mirrored index
+(`TAPS_LUT[WIDTH][WIDTH-1-i]`, not `[i]`) for reasons unrelated to this
+table's contents. The per-width polynomial and primitivity result are
+unchanged; see [0006](0006-galois-lfsr-tap-mirroring.md) for why the
+mirrored reading is required and how it was re-verified.

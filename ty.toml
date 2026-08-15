@@ -1,0 +1,3 @@
+[environment]
+extra-paths = ["common/verif"]
+python = ".pixi/envs/default"

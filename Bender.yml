@@ -1,0 +1,22 @@
+# A more detailed description of the manifest format `Bender.yml` can be found here:
+# https://github.com/pulp-platform/bender#manifest-format-benderyml
+
+package:
+  name: Microarch_Lib
+  authors:
+    - "JayPankajPatel <jayp102501@gmail.com>"
+
+dependencies:
+
+sources:
+  # Single source group: include_dirs applies to every file below via `` `include ``,
+  # and Bender/Verilator resolve inter-module dependencies from the design graph, not
+  # from file order, so one flat group is sufficient for a single-package repo like this.
+  - include_dirs:
+      - common/rtl
+    files:
+      - blocks/basic/*.sv
+      - blocks/stocastic/pnr/*.sv
+      - blocks/stocastic/rtl/*.sv
+
+

@@ -4,3 +4,6 @@
 
 # LibreLane run artifacts (regenerable; configs under blocks/*/pnr/*/config.json are tracked)
 blocks/*/pnr/*/runs/
+
+# bender dependency checkout cache (regenerable via `bender checkout`; Bender.lock is tracked)
+.bender/
