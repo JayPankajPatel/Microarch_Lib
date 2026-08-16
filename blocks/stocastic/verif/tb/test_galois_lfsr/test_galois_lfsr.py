@@ -3,7 +3,7 @@ from cocotb.triggers import RisingEdge
 from ma_clkrst import reset_dut, start_clock
 from pylfsr import LFSR
 
-#interface
+# interface
 # module galois_lfsr #(
 #   parameter int WIDTH = 4,
 #   parameter bit [WIDTH-1:0] INIT_SEED = WIDTH'(1)
@@ -16,18 +16,70 @@ from pylfsr import LFSR
 
 # Mirrors galois_lfsr.sv's TAPS_LUT exactly -- keep these two tables in sync.
 TAPS_LUT = {
-    0: 0x0, 1: 0x0, 2: 0x1, 3: 0x1, 4: 0x4, 5: 0x4, 6: 0x10, 7: 0x20,
-    8: 0x38, 9: 0x10, 10: 0x40, 11: 0x100, 12: 0x29, 13: 0x241, 14: 0x409,
-    15: 0x2000, 16: 0x406, 17: 0x2000, 18: 0x400, 19: 0x1101, 20: 0x10000,
-    21: 0x40000, 22: 0x100000, 23: 0x20000, 24: 0x104001, 25: 0x200000,
-    26: 0x142, 27: 0x13, 28: 0x1000000, 29: 0x4000000, 30: 0x4020001,
-    31: 0x8000000, 32: 0x200003, 33: 0x1000, 34: 0xC02, 35: 0x2, 36: 0x400,
-    37: 0xA02, 38: 0x14002000, 39: 0x8, 40: 0x140002, 41: 0x4,
-    42: 0x4020000040, 43: 0x38, 44: 0x32, 45: 0x40080040000, 46: 0xC00001,
-    47: 0x10, 48: 0x400002001000, 49: 0x100, 50: 0x10080002000,
-    51: 0x1200010, 52: 0x4, 53: 0x400100200, 54: 0x20000010080,
-    55: 0x800000, 56: 0x4024000, 57: 0x40, 58: 0x40000, 59: 0x300002,
-    60: 0x1, 61: 0x200000040001000, 62: 0x8000010000040, 63: 0x1,
+    0: 0x0,
+    1: 0x0,
+    2: 0x1,
+    3: 0x1,
+    4: 0x4,
+    5: 0x4,
+    6: 0x10,
+    7: 0x20,
+    8: 0x38,
+    9: 0x10,
+    10: 0x40,
+    11: 0x100,
+    12: 0x29,
+    13: 0x241,
+    14: 0x409,
+    15: 0x2000,
+    16: 0x406,
+    17: 0x2000,
+    18: 0x400,
+    19: 0x1101,
+    20: 0x10000,
+    21: 0x40000,
+    22: 0x100000,
+    23: 0x20000,
+    24: 0x104001,
+    25: 0x200000,
+    26: 0x142,
+    27: 0x13,
+    28: 0x1000000,
+    29: 0x4000000,
+    30: 0x4020001,
+    31: 0x8000000,
+    32: 0x200003,
+    33: 0x1000,
+    34: 0xC02,
+    35: 0x2,
+    36: 0x400,
+    37: 0xA02,
+    38: 0x14002000,
+    39: 0x8,
+    40: 0x140002,
+    41: 0x4,
+    42: 0x4020000040,
+    43: 0x38,
+    44: 0x32,
+    45: 0x40080040000,
+    46: 0xC00001,
+    47: 0x10,
+    48: 0x400002001000,
+    49: 0x100,
+    50: 0x10080002000,
+    51: 0x1200010,
+    52: 0x4,
+    53: 0x400100200,
+    54: 0x20000010080,
+    55: 0x800000,
+    56: 0x4024000,
+    57: 0x40,
+    58: 0x40000,
+    59: 0x300002,
+    60: 0x1,
+    61: 0x200000040001000,
+    62: 0x8000010000040,
+    63: 0x1,
     64: 0x4040000000000020,
 }
 
@@ -64,6 +116,7 @@ async def matches_pylfsr_galois_reference(dut):
     period_ns = 10
     width = len(dut.out)
     init_seed = int(dut.INIT_SEED.value)
+    dut.en.value = 1
 
     fpoly = fpoly_for(width)
     # Reversed mapping to match state_to_int: initstate[j] = bit (width-1-j) of seed.
@@ -86,7 +139,9 @@ async def matches_pylfsr_galois_reference(dut):
 
     cocotb.log.info(
         "WIDTH=%d fpoly=%s: DUT matched pylfsr galois reference for %d cycles",
-        width, fpoly, n_cycles,
+        width,
+        fpoly,
+        n_cycles,
     )
 
 
@@ -129,5 +184,7 @@ async def reaches_maximal_length_cycle(dut):
 
     cocotb.log.info(
         "WIDTH=%d seed=0x%x: DUT visited all %d nonzero states before repeating",
-        width, init_seed, expected_period,
+        width,
+        init_seed,
+        expected_period,
     )

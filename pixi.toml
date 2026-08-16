@@ -7,6 +7,8 @@ version = "0.1.0"
 
 [tasks]
 setup-sby = "rm -rf /tmp/sby-src-microarch && git clone --depth 1 https://github.com/YosysHQ/sby /tmp/sby-src-microarch && make -C /tmp/sby-src-microarch install PREFIX=$CONDA_PREFIX && rm -rf /tmp/sby-src-microarch"
+lint = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && MOD=$(grep -oP \"(?<=^module )\\w+\" \"$1\" | head -1) && exec verilator --lint-only -Wall $INCDIRS $SOURCES --top-module \"$MOD\"' _"
+lint-all = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && exec verilator --lint-only -Wall $INCDIRS $SOURCES \"$@\"' _"
 
 [dependencies]
 verilator = ">=5.50,<6"
@@ -19,3 +21,5 @@ pytest = ">=9.1.1,<10"
 
 [pypi-dependencies]
 pylfsr = ">=1.0.7, <2"
+wavedrom = ">=2.0.3.post3, <3"
+

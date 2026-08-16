@@ -3,18 +3,19 @@
 // library RTL -- lives outside rtl/ so the pre-commit lint hook (which
 // globs blocks/*/rtl/*.sv) doesn't pick it up.
 module lfsr64_wrapper (
-  input  logic        clk,
-  input  logic        rst_n,
-  output logic [63:0] out
+    input  logic        clk,
+    input  logic        rst_n,
+    output logic [63:0] out
 );
 
-galois_lfsr #(
-  .WIDTH(64),
-  .INIT_SEED(64'h1)
-) u_lfsr (
-  .clk    (clk),
-  .rst_n  (rst_n),
-  .out    (out)
-);
+  galois_lfsr #(
+      .WIDTH(64),
+      .INIT_SEED(64'h1)
+  ) u_lfsr (
+      .clk  (clk),
+      .rst_n(rst_n),
+      .en   (1'b1),
+      .out  (out)
+  );
 
 endmodule : lfsr64_wrapper
