@@ -38,6 +38,8 @@ Every block lives under `blocks/<name>/` with a fixed shape, established from th
 ```
 blocks/<name>/
   rtl/                  -- synthesizable SystemVerilog
+  docs/
+    waveforms/           -- wavedrom JSON timing-diagram sources, plus their rendered .svg (both committed -- .svg regenerated via `pixi run render-waveform <path/to/diagram.json>` after editing the .json)
   verif/
     formal/             -- SymbiYosys .sby files + bind checkers
     sim/                -- testbenches

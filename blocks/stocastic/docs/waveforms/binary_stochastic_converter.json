@@ -1,0 +1,70 @@
+{
+  "signal": [
+    {
+      "name": "clk",
+      "wave": "p............"
+    },
+    {
+      "name": "rst_n",
+      "wave": "0111111111111"
+    },
+    {
+      "name": "binary_in",
+      "wave": "xx=..........",
+      "data": [
+        "D0"
+      ]
+    },
+    {
+      "name": "valid_binary_in",
+      "wave": "0010000000000",
+      "node": "..S.........."
+    },
+    {
+      "name": "ready_binary_in",
+      "wave": "1110000000111"
+    },
+    {},
+    {
+      "name": "en (internal)",
+      "wave": "0001100110000"
+    },
+    {
+      "name": "busy (internal)",
+      "wave": "0001111110000",
+      "node": "...A.....B..."
+    },
+    {},
+    {
+      "name": "stochastic_out",
+      "wave": "xxx===.==xxxx",
+      "data": [
+        "b0",
+        "b1",
+        "b2",
+        "b3",
+        "b4"
+      ]
+    },
+    {
+      "name": "valid_stochastic_out",
+      "wave": "0001111110000"
+    },
+    {
+      "name": "ready_stochastic_out",
+      "wave": "1111100111111",
+      "node": ".....C.D....."
+    }
+  ],
+  "edge": [
+    "S<->A latch on valid&&ready",
+    "A<->B 2^N cycles (N = WIDTH), stretched by any stalls",
+    "C<->D stall: ready low, en low, output held"
+  ],
+  "config": {
+    "hscale": 1.5
+  },
+  "head": {
+    "text": "binary_stochastic_converter: accept, stream (one backpressure stall on b2)"
+  }
+}
