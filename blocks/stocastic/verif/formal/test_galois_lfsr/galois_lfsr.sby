@@ -1,0 +1,21 @@
+[tasks]
+w4
+w16
+w64
+
+[options]
+mode prove
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal -Icommon/rtl galois_lfsr.sv
+w16: chparam -set WIDTH 16 -set INIT_SEED 69 galois_lfsr
+w64: chparam -set WIDTH 64 -set INIT_SEED 1 galois_lfsr
+prep -top galois_lfsr
+
+[files]
+blocks/stocastic/rtl/galois_lfsr.sv
+common/rtl common/rtl

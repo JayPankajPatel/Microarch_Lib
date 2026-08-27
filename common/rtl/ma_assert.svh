@@ -1,5 +1,5 @@
 // Elaboration-time check macro dispatch. Include this before using
-// `MA_ASSERT_INIT in any RTL file.
+// `MA_ASSERT_ELABOR in any RTL file.
 
 `ifndef MA_ASSERT_SV
 `define MA_ASSERT_SV

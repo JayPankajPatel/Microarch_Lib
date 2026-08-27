@@ -16,3 +16,7 @@ To add a new one: copy `template.md` (base format is [MADR](https://adr.github.i
 | [0005](0005-taps-lut-sparse-vs-dense-ppa.md) | `TAPS_LUT` uses the sparse (low Hamming-weight) replacement masks, confirmed by real LibreLane+sky130 PPA numbers | Accepted |
 | [0006](0006-galois-lfsr-tap-mirroring.md) | `galois_lfsr.sv`'s distributed-tap recurrence reads `TAPS_LUT` mirrored (`TAPS_LUT[WIDTH][WIDTH-1-i]`, not `[i]`) | Accepted |
 | [0007](0007-gaisler-two-process-fsm-style.md) | FSM-shaped RTL uses the Gaisler two-process style (`r`/`rin` struct, single `always_comb` + single `always_ff`) | Accepted |
+| [0008](0008-taps-lut-yosys-frontend-encoding.md) | `TAPS_LUT` is encoded as a constant function, not a `localparam` array, so it parses under Yosys's native frontend | Accepted |
+| [0009](0009-formal-checker-inline-not-bind.md) | The `galois_lfsr` `no_lockup` formal property is an inline `` `ifdef FORMAL `` assertion, not a `bind`-ed checker module | Accepted |
+| [0010](0010-formal-sby-invocation-robustness.md) | `.sby` files use repo-root-relative `[files]` paths and a dedicated `pixi run formal` task that redirects all run output to `/build/` | Accepted |
+| [0011](0011-ma-macro-naming-elabor-vs-sva.md) | Verification macros are named `MA_<KIND>_ELABOR`/`MA_<KIND>_SVA`, not left unprefixed or named after their OpenTitan ancestor | Accepted |

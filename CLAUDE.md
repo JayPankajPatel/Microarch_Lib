@@ -49,7 +49,7 @@ blocks/<name>/
 
 ### Elaboration-time parameter checks
 
-`common/rtl/ma_assert.svh` is a tool-dispatch header: it `` `include ``s either `ma_assert_std.svh` (real macro bodies) or `ma_assert_dummy.svh` (same macro names, no-op bodies) depending on `` `ifdef SYNTHESIS ``/`` `ifdef YOSYS ``. Every block that needs a parameter-range check (or similar) should `` `include "ma_assert.svh" `` and call `` `MA_ASSERT_INIT(name, condition) `` rather than hand-rolling an `if`/`$error`. See `blocks/stocastic/rtl/galois_lfsr.sv` for the reference usage, and `docs/adr/0001-elaboration-check-mechanism.md` for why this specific form was chosen over the alternatives (SVA, the `checker` construct, OpenTitan's `` `ASSERT_INIT `` pattern).
+`common/rtl/ma_assert.svh` is a tool-dispatch header: it `` `include ``s either `ma_assert_std.svh` (real macro bodies) or `ma_assert_dummy.svh` (same macro names, no-op bodies) depending on `` `ifdef SYNTHESIS ``/`` `ifdef YOSYS ``. Every block that needs a parameter-range check (or similar) should `` `include "ma_assert.svh" `` and call `` `MA_ASSERT_ELABOR(name, condition) `` rather than hand-rolling an `if`/`$error`. See `blocks/stocastic/rtl/galois_lfsr.sv` for the reference usage, and `docs/adr/0001-elaboration-check-mechanism.md` for why this specific form was chosen over the alternatives (SVA, the `checker` construct, OpenTitan's `` `ASSERT_INIT `` pattern).
 
 ### FSM-shaped RTL uses the Gaisler two-process style
 

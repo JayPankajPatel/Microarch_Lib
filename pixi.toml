@@ -12,6 +12,7 @@ lint-all = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-
 sweep-widths = "bash -c 'cd \"$INIT_CWD\" && exec \"$PIXI_PROJECT_ROOT/scripts/sweep_widths.sh\" \"$@\"' _"
 run-regression = "bash -c 'exec \"$PIXI_PROJECT_ROOT/scripts/run_regression.sh\"'"
 render-waveform = "bash -c 'cd \"$INIT_CWD\" && exec \"$PIXI_PROJECT_ROOT/scripts/render_waveform.sh\" \"$@\"' _"
+formal = "bash -c 'cd \"$INIT_CWD\" && SBY_REL=$(realpath --relative-to=\"$PIXI_PROJECT_ROOT\" \"$1\") && cd \"$PIXI_PROJECT_ROOT\" && BASENAME=$(basename \"$SBY_REL\" .sby) && exec sby -f \"$SBY_REL\" --prefix \"build/formal/$BASENAME\"' _"
 
 [dependencies]
 verilator = ">=5.50,<6"

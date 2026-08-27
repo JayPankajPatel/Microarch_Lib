@@ -7,3 +7,13 @@ blocks/*/pnr/*/runs/
 
 # bender dependency checkout cache (regenerable via `bender checkout`; Bender.lock is tracked)
 .bender/
+
+# SymbiYosys run-output directories: `pixi run formal` redirects all workdirs
+# here via `--prefix` (see docs/adr/0010) so this one entry covers every
+# module's formal task regardless of directory nesting -- pattern-matching
+# by directory depth/name under blocks/*/verif/formal/ was tried first and
+# rejected as fragile (a module directory name containing an underscore,
+# e.g. galois_lfsr/, is indistinguishable from a generated workdir name by
+# a simple glob).
+/build/
+*.vcd

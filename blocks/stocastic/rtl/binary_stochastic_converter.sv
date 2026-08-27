@@ -12,14 +12,14 @@ module binary_stochastic_converter #(
     output logic stochastic_out,
     output logic last_cycle
 );
-  `MA_ASSERT_INIT(ValidBinarytoStocasticCheck, WIDTH inside {[2 : 64]})  // 2 to 64 inclusive
+  `MA_ASSERT_ELABOR(ValidBinarytoStocasticCheck, WIDTH inside {[2 : 64]})  // 2 to 64 inclusive
   localparam int n = WIDTH;
   // takes 2^N cycles to convert a binary number to a stochastic bit stream
   localparam [$clog2((1 << n))-1:0] target_cycle_count = (1 << ((n))) - 1;
   logic [n-1:0] random_number;
   /* verilator lint_off ASCRANGE */
   logic [$clog2((1 << n))-1:0] out_counter;
-  logic en; 
+  logic en;
 
   typedef struct packed {
     logic [n-1:0] binary_in_d;

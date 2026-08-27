@@ -8,7 +8,7 @@ module counter #(
     input logic rst_n,
     output logic [$clog2(UPTO)-1:0] out
 );
-  `MA_ASSERT_INIT(ValidCounterSize, UPTO > 0)
+  `MA_ASSERT_ELABOR(ValidCounterSize, UPTO > 0)
 
   always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin

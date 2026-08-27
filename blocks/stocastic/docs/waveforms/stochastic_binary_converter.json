@@ -1,0 +1,63 @@
+{
+  "signal": [
+    {
+      "name": "clk",
+      "wave": "p............"
+    },
+    {
+      "name": "rst_n",
+      "wave": "0111111111111"
+    },
+    {
+      "name": "stochastic_in",
+      "wave": "xx101xxxx1xxx"
+    },
+    {
+      "name": "valid_stochastic_in",
+      "wave": "0011100001000"
+    },
+    {
+      "name": "ready_stochastic_in",
+      "wave": "1111100011111"
+    },
+    {},
+    {
+      "name": "cycle_count (internal)",
+      "wave": "x=.===..=.=..",
+      "data": ["0", "1", "2", "3", "0", "1"],
+      "node": ".....A......."
+    },
+    {
+      "name": "ones_count (internal)",
+      "wave": "x=.=.=..=.=..",
+      "data": ["0", "1", "2", "0", "1"]
+    },
+    {},
+    {
+      "name": "valid_binary_out",
+      "wave": "0000011100000"
+    },
+    {
+      "name": "ready_binary_out",
+      "wave": "10.1.0.1.....",
+      "node": ".E.F.B.C....."
+    },
+    {
+      "name": "binary_out",
+      "wave": "xxxxx=..xxxxx",
+      "data": ["2"]
+    }
+  ],
+  "edge": [
+    "E<->F ready_binary_out low while sample0 (col 2) is accepted -- accumulation is unaffected: cycle_count/ones_count advance purely on valid_stochastic_in and internal readiness, never on the output-side ready",
+    "A cycle_count hits MAX_CYCLES (WIDTH=2, 3 samples: 1,0,1); ones_count=2 is the final result",
+    "B<->C stall: ready_binary_out low, result held (binary_out, ones_count unchanged), ready_stochastic_in dropped -- next window's sample (col 9) is NOT accepted early",
+    "C handshake completes; module resets counters and reopens ready_stochastic_in for the next window"
+  ],
+  "config": {
+    "hscale": 1.5
+  },
+  "head": {
+    "text": "stochastic_to_binary: accumulate 3 samples (WIDTH=2) independent of ready_binary_out, stall on handoff, resume next window"
+  }
+}
