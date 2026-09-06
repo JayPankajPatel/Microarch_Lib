@@ -20,3 +20,9 @@ To add a new one: copy `template.md` (base format is [MADR](https://adr.github.i
 | [0009](0009-formal-checker-inline-not-bind.md) | The `galois_lfsr` `no_lockup` formal property is an inline `` `ifdef FORMAL `` assertion, not a `bind`-ed checker module | Accepted |
 | [0010](0010-formal-sby-invocation-robustness.md) | `.sby` files use repo-root-relative `[files]` paths and a dedicated `pixi run formal` task that redirects all run output to `/build/` | Accepted |
 | [0011](0011-ma-macro-naming-elabor-vs-sva.md) | Verification macros are named `MA_<KIND>_ELABOR`/`MA_<KIND>_SVA`, not left unprefixed or named after their OpenTitan ancestor | Accepted |
+| [0012](0012-stochastic-multiplier-join-semantics.md) | `stochastic_multiplier` joins two independent valid/ready producers with `valid` never gated on `ready` | Accepted |
+| [0013](0013-encoder-burst-length-and-counter-clear.md) | Fixes issue #2's burst-length mismatch; `counter` gets an explicit synchronous `clr` instead of relying on wraparound coincidence | Accepted |
+| [0014](0014-stochastic-adder-mux-scaling-and-select-independence.md) | `stochastic_adder` computes `(A+B)/2` via MUX with its own internal, independently-parameterized select LFSR | Accepted |
+| [0015](0015-encoder-init-seed-parameter-for-decorrelation.md) | `binary_stochastic_converter` exposes `INIT_SEED`, required to be distinct across instances sharing a consumer | Accepted |
+| [0016](0016-encoder-accept-must-not-depend-on-downstream-ready.md) | Encoder's burst accept depends only on its own state and `valid_binary_in`, never on `ready_stochastic_out` -- fixes a mutual-startup deadlock when composing two encoders into one join | Accepted |
+| [0017](0017-decoder-window-close-via-boundary-pulse.md) | `stochastic_to_binary` closes its window on an explicit `boundary_in` pulse from the producer, not a locally-counted length match | Accepted |

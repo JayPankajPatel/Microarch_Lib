@@ -12,11 +12,21 @@ from ma_clkrst import reset_dut, start_clock
 #     input logic rst_n,
 #     input logic stochastic_in,
 #     input logic valid_stochastic_in,
+#     input logic boundary_in,
 #     input logic ready_binary_out,
 #     output logic ready_stochastic_in,
 #     output logic valid_binary_out,
 #     output logic [WIDTH-1:0] binary_out
 # );
+#
+# boundary_in is meaningful only on a cycle a sample is actually
+# transferred (valid_stochastic_in && ready_stochastic_in both high) --
+# asserting it there tells the decoder "this is the last sample of the
+# current window," replacing the older design's reliance on a local
+# cycle_count reaching a fixed target (see docs/adr/0017). These
+# module-level tests drive it explicitly (high on the intended last sample
+# of each window, low otherwise) rather than relying on any implicit
+# per-module window length.
 
 
 async def wait_for_valid_binary_out(dut, max_edges=5):
@@ -53,9 +63,11 @@ async def wait_for_ready_stochastic_in(dut, max_edges=5):
 
 def golden_model(bits):
     """Independently predict binary_out for one accumulation window:
-    binary_out is just the popcount of the `MAX_CYCLES` stochastic bits
-    accepted during the window -- no LFSR, no protocol state, just count
-    the 1s. `bits` is the list of stochastic_in values fed in, in order.
+    binary_out is just the popcount of the stochastic bits accepted during
+    the window -- no LFSR, no protocol state, just count the 1s. `bits` is
+    the list of stochastic_in values fed in, in order, for exactly one
+    window (however many samples that window turns out to have, as marked
+    by boundary_in -- these tests always use max_cycles-sample windows).
     """
     return sum(bits)
 
@@ -71,15 +83,17 @@ async def smoke_test(dut):
     start_clock(dut.clk, period_ns)
     dut.valid_stochastic_in.value = 0
     dut.stochastic_in.value = 0
+    dut.boundary_in.value = 0
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     dut.valid_stochastic_in.value = 1
     dut.ready_binary_out.value = 1
     sto_buffer = []
-    for _ in range(max_cycles):
+    for i in range(max_cycles):
         dut_in = random.randint(0, 1)
         sto_buffer.append(dut_in)
         dut.stochastic_in.value = dut_in
+        dut.boundary_in.value = 1 if i == max_cycles - 1 else 0
         await RisingEdge(dut.clk)
 
     # Two settling edges. Confirmed via direct VCD inspection (dump.vcd,
@@ -110,9 +124,10 @@ async def smoke_test(dut):
 @cocotb.test()
 async def mid_accumulation_stall_ignores_ready_binary_out(dut):
     """ready_binary_out dropping mid-window must not affect accumulation --
-    cycle_count/ones_count only depend on valid_stochastic_in, never on the
-    output-side ready (see stochastic_binary_converter.json's E<->F edge:
-    ready_binary_out low during accumulation, sample still accepted).
+    accumulation only depends on valid_stochastic_in/ready_stochastic_in
+    (i.e. a real transfer happening), never on the output-side ready (see
+    stochastic_binary_converter.json's E<->F edge: ready_binary_out low
+    during accumulation, sample still accepted).
     """
     period_ns = 10
     width = len(dut.binary_out)
@@ -120,6 +135,7 @@ async def mid_accumulation_stall_ignores_ready_binary_out(dut):
     start_clock(dut.clk, period_ns)
     dut.valid_stochastic_in.value = 0
     dut.stochastic_in.value = 0
+    dut.boundary_in.value = 0
     dut.ready_binary_out.value = 0
     await reset_dut(dut.rst_n, dut.clk, 5)
 
@@ -129,10 +145,11 @@ async def mid_accumulation_stall_ignores_ready_binary_out(dut):
         dut_in = random.randint(0, 1)
         sto_buffer.append(dut_in)
         dut.stochastic_in.value = dut_in
+        dut.boundary_in.value = 1 if i == max_cycles - 1 else 0
         if i == max_cycles - 3:
             # raise ready_binary_out with a few cycles of margin before the
             # completion boundary, so the write has settled well before
-            # r.cycle_count actually reaches MAX_CYCLES
+            # the last sample is actually accepted
             dut.ready_binary_out.value = 1
         await RisingEdge(dut.clk)
         assert dut.ready_stochastic_in.value == 1, (
@@ -153,21 +170,10 @@ async def mid_accumulation_stall_ignores_ready_binary_out(dut):
 
 @cocotb.test()
 async def valid_binary_out_should_hold_through_post_completion_stall(dut):
-    """KNOWN FAILING TEST -- pins down an open bug, does not pass yet.
-
-    stochastic_binary_converter.json's B<->C edge specifies the intended
+    """stochastic_binary_converter.json's B<->C edge specifies the intended
     behavior: once a window completes, valid_binary_out should assert
     independent of ready_binary_out and hold there (binary_out stable)
-    until the consumer actually asserts ready. The current RTL's
-    completion branch instead requires ready_binary_out to already be high
-    before it will ever assert valid_binary_out --
-    `if (r.cycle_count == MAX_CYCLES && ready_binary_out)` -- so if the
-    consumer isn't ready right when the window finishes, valid_binary_out
-    never appears until ready_binary_out does, instead of appearing first
-    and being held. This test encodes the *intended* (diagram) behavior
-    and is expected to fail until that decoupling is fixed -- see the
-    skid-buffer/valid-ready decoupling discussion this test was written
-    from.
+    until the consumer actually asserts ready.
     """
     period_ns = 10
     width = len(dut.binary_out)
@@ -175,15 +181,17 @@ async def valid_binary_out_should_hold_through_post_completion_stall(dut):
     start_clock(dut.clk, period_ns)
     dut.valid_stochastic_in.value = 0
     dut.stochastic_in.value = 0
+    dut.boundary_in.value = 0
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     dut.valid_stochastic_in.value = 1
     dut.ready_binary_out.value = 0  # consumer not ready when the window completes
     sto_buffer = []
-    for _ in range(max_cycles):
+    for i in range(max_cycles):
         dut_in = random.randint(0, 1)
         sto_buffer.append(dut_in)
         dut.stochastic_in.value = dut_in
+        dut.boundary_in.value = 1 if i == max_cycles - 1 else 0
         await RisingEdge(dut.clk)
 
     await RisingEdge(dut.clk)
@@ -192,8 +200,7 @@ async def valid_binary_out_should_hold_through_post_completion_stall(dut):
     expected = golden_model(sto_buffer)
     assert dut.valid_binary_out.value == 1, (
         "valid_binary_out should assert as soon as the window is done, "
-        "independent of ready_binary_out -- currently fails because the "
-        "completion branch requires ready_binary_out already high"
+        "independent of ready_binary_out"
     )
     assert int(dut.binary_out.value) == expected
 
@@ -222,6 +229,7 @@ async def back_to_back_windows(dut):
     start_clock(dut.clk, period_ns)
     dut.valid_stochastic_in.value = 0
     dut.stochastic_in.value = 0
+    dut.boundary_in.value = 0
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     dut.valid_stochastic_in.value = 1
@@ -229,21 +237,24 @@ async def back_to_back_windows(dut):
 
     window_1 = []
     window_2 = []
-    for _ in range(max_cycles):
+    for i in range(max_cycles):
         dut_in = random.randint(0, 1)
         window_1.append(dut_in)
         dut.stochastic_in.value = dut_in
+        dut.boundary_in.value = 1 if i == max_cycles - 1 else 0
         await RisingEdge(dut.clk)
 
-    # Drop valid_stochastic_in before polling for completion -- the RTL's
-    # completion sequence is two separate registered transitions (latch and
-    # show valid, then reset and clear one cycle later, guaranteed by their
-    # mutual exclusion in always_comb), so there are a couple of cycles here
-    # where an accumulation branch firing on stale stochastic_in would be a
-    # phantom sample. The completion branches don't read
-    # valid_stochastic_in, so dropping it here doesn't interfere with
-    # observing window 1's own completion.
+    # Drop valid_stochastic_in (and boundary_in) before polling for
+    # completion -- the RTL's completion sequence is two separate
+    # registered transitions (latch and show valid, then reset and clear
+    # one cycle later, guaranteed by their mutual exclusion in
+    # always_comb), so there are a couple of cycles here where an
+    # accumulation branch firing on stale stochastic_in would be a phantom
+    # sample. The completion branches don't read valid_stochastic_in, so
+    # dropping it here doesn't interfere with observing window 1's own
+    # completion.
     dut.valid_stochastic_in.value = 0
+    dut.boundary_in.value = 0
     await wait_for_valid_binary_out(dut)
 
     expected_1 = golden_model(window_1)
@@ -259,10 +270,11 @@ async def back_to_back_windows(dut):
     await wait_for_ready_stochastic_in(dut)
 
     dut.valid_stochastic_in.value = 1
-    for _ in range(max_cycles):
+    for i in range(max_cycles):
         dut_in = random.randint(0, 1)
         window_2.append(dut_in)
         dut.stochastic_in.value = dut_in
+        dut.boundary_in.value = 1 if i == max_cycles - 1 else 0
         await RisingEdge(dut.clk)
 
     await wait_for_valid_binary_out(dut)

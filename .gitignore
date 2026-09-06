@@ -17,3 +17,8 @@ blocks/*/pnr/*/runs/
 # a simple glob).
 /build/
 *.vcd
+
+# cocotb/Verilator build artifacts, left behind per-testbench-dir by `make`
+__pycache__/
+sim_build/
+results.xml

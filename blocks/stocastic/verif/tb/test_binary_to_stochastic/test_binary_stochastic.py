@@ -22,8 +22,10 @@ from pylfsr import LFSR
 # Protocol under test (see binary_stochastic_timing_diagram.svg):
 #  - binary_in is accepted in the cycle where valid_binary_in && ready_binary_in
 #    are both high (the converter is idle, i.e. not mid-burst).
-#  - The next cycle onward, the converter streams exactly 2**WIDTH stochastic
-#    bits, one per cycle it isn't stalled, each equal to
+#  - The next cycle onward, the converter streams exactly 2**WIDTH-1
+#    stochastic bits (one full clean galois_lfsr period -- see GitHub issue
+#    #2 and docs/adr/0005/0006 for why it isn't 2**WIDTH), one per cycle it
+#    isn't stalled, each equal to
 #    (lfsr_state < accepted_binary_in). valid_stochastic_out stays high for
 #    the entire burst -- it does not toggle per bit.
 #  - Downstream backpressure (ready_stochastic_out == 0) holds the current
@@ -77,10 +79,11 @@ def state_to_int(state, width):
 
 
 def golden_model(width, lfsr_state, binary_in_value):
-    """Independently predict one full 2**WIDTH-bit burst for a given
-    binary_in, using pylfsr as the LFSR reference (same construction
-    test_galois_lfsr.py already validates the RTL against) rather than
-    reading the DUT's internal random_number signal.
+    """Independently predict one full 2**WIDTH-1-bit burst (one clean
+    galois_lfsr period -- see GitHub issue #2) for a given binary_in, using
+    pylfsr as the LFSR reference (same construction test_galois_lfsr.py
+    already validates the RTL against) rather than reading the DUT's
+    internal random_number signal.
 
     `lfsr_state` is the LFSR's *current* state going into this burst -- only
     INIT_SEED for the very first burst after reset. Since the LFSR isn't
@@ -88,9 +91,9 @@ def golden_model(width, lfsr_state, binary_in_value):
     thread the returned `end_state` into the next call's `lfsr_state`, or
     the golden model desyncs from the DUT after the first burst.
 
-    Returns `(bits, end_state)`: `bits` is a list of 2**WIDTH bits in
+    Returns `(bits, end_state)`: `bits` is a list of 2**WIDTH-1 bits in
     emission order (index 0 == first bit of the burst); `end_state` is the
-    LFSR's state after this burst's 2**WIDTH advances, to feed into the
+    LFSR's state after this burst's 2**WIDTH-1 advances, to feed into the
     next call.
     """
     fpoly = fpoly_for(width)
@@ -105,7 +108,7 @@ def golden_model(width, lfsr_state, binary_in_value):
     # ref.next() further along, matching the RTL's per-bit LFSR advance.
     state = state_to_int(initstate, width)
     bits = []
-    for _ in range(1 << width):
+    for _ in range((1 << width) - 1):
         bits.append(1 if state < binary_in_value else 0)
         ref.next()
         state = state_to_int(ref.state, width)
@@ -235,8 +238,13 @@ async def stall_holds_bit_and_stretches_busy(dut):
     binary_in_value = random.randint(0, max_value)
     expected_bits, _ = golden_model(width, init_seed, binary_in_value)
 
+    # stall_at must leave room for stream_burst's post-stall "settling bit"
+    # check (it indexes expected_bits[stall_at+1]) -- bit 2 is safely
+    # mid-burst for WIDTH>=3 (burst length 2**WIDTH-1 >= 7), but at WIDTH=2
+    # the burst is only 3 bits long and bit 2 is the last one, so clamp.
+    stall_at = min(2, len(expected_bits) - 2)
     await accept_transfer(dut, binary_in_value)
-    await stream_burst(dut, expected_bits, stall_at=2, stall_len=2)
+    await stream_burst(dut, expected_bits, stall_at=stall_at, stall_len=2)
 
     await RisingEdge(dut.clk)
     assert dut.valid_stochastic_out.value == 0
@@ -245,7 +253,17 @@ async def stall_holds_bit_and_stretches_busy(dut):
 
 @cocotb.test()
 async def back_to_back_transfers(dut):
-    """After one burst completes, a new binary_in can be accepted immediately."""
+    """After one burst completes, a new binary_in can be accepted immediately.
+
+    Also directly checks RNG.out against the golden model's threaded LFSR
+    state at the start of every burst -- this is the actual reproducibility
+    property GitHub issue #2 was about (a burst-to-burst phase drift is
+    exactly what an out_counter that leaks residual state across bursts
+    would cause, per docs/adr/0013), not just "does stochastic_out match
+    bit-for-bit" (which stream_burst already checks but which wouldn't by
+    itself distinguish a clean-period desync from a coincidentally-matching
+    one over just 3 bursts).
+    """
     period_ns = 10
     width = len(dut.binary_in)
     max_value = (1 << width) - 1
@@ -255,6 +273,12 @@ async def back_to_back_transfers(dut):
 
     lfsr_state = int(dut.RNG.INIT_SEED.value)
     for _ in range(3):
+        assert int(dut.RNG.out.value) == lfsr_state, (
+            "LFSR state at burst start must match the golden model's "
+            "threaded state -- a mismatch here means out_counter (or the "
+            "LFSR itself) is leaking state across bursts instead of "
+            "completing one clean period per burst"
+        )
         binary_in_value = random.randint(0, max_value)
         expected_bits, lfsr_state = golden_model(width, lfsr_state, binary_in_value)
         await accept_transfer(dut, binary_in_value)
