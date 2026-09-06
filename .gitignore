@@ -22,3 +22,14 @@ blocks/*/pnr/*/runs/
 __pycache__/
 sim_build/
 results.xml
+
+# Vivado run artifacts -- dumped at whatever directory vivado is invoked
+# from (typically repo root, since blocks/stocastic/fpga/scripts/*.tcl are
+# run with relative paths from there), not inside blocks/stocastic/fpga/
+# itself. proj/ under fpga/results/<top>/ (created by build_and_report.tcl)
+# is covered by the trailing-slash patterns below regardless of nesting.
+.Xil/
+*.jou
+*.log
+clockInfo.txt
+proj/

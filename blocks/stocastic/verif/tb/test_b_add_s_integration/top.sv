@@ -31,6 +31,13 @@
 //    guarantees a structurally different taps polynomial (see
 //    galois_lfsr.sv's TAPS_LUT), not just a different seed under the same
 //    one.
+//
+// IMPORTANT (see docs/adr/0019 and GitHub issue #3): distinctness alone
+// is NOT sufficient at this module's default WIDTH=4 -- a hard structural
+// threshold was found: no seed pair, however well phase-separated, gives
+// accurate output below WIDTH=7 (period too short relative to any useful
+// sample count). At WIDTH=4 this composition is verified for
+// PROTOCOL/STRUCTURAL correctness only; do not trust its numeric output.
 module top #(
     parameter int WIDTH = 4,
     parameter bit [WIDTH-1:0] INIT_SEED_A = WIDTH'(1),

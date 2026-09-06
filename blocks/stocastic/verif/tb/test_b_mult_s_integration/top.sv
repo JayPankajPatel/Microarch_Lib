@@ -15,6 +15,18 @@
 // galois_lfsrs advance in lockstep and produce fully-correlated streams --
 // the multiplier's AND would then compute min(a,b), not a*b, while still
 // looking protocol-correct (valid handshakes, plausible-looking bits).
+//
+// IMPORTANT (see docs/adr/0019 and GitHub issue #3): "distinct seed" alone
+// is NOT sufficient at this module's default WIDTH=4. A follow-up
+// characterization swept WIDTH=2..16 and found a hard structural
+// threshold: no seed pair (not even the best possible phase separation)
+// gives accurate AND-multiply output below WIDTH=7 -- the LFSR period
+// (2^WIDTH-1) is too short relative to any useful sample count. At
+// WIDTH=4 this composition is verified for PROTOCOL/STRUCTURAL
+// correctness only (binary_out honestly reflects whatever the multiplier
+// actually output) -- do not trust its numeric output as an accurate
+// product. Instantiate at WIDTH>=7 with a properly phase-separated seed
+// pair (see docs/adr/0019's table) if numeric accuracy is required.
 module top #(
     parameter int WIDTH = 4,
     parameter bit [WIDTH-1:0] INIT_SEED_A = WIDTH'(1),
