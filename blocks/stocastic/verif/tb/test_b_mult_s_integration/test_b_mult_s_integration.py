@@ -121,6 +121,15 @@ async def product_matches_golden_model_over_multiple_windows(dut):
         # transfer observed at this same snapshot could belong to the
         # *next* window, not the one that just closed (same ordering bug
         # class found and fixed in test_loopback_stochastic).
+        #
+        # These must be two independent `if`s, not `if`/`elif`: the decoder
+        # can complete a window AND accept a new sample for the next window
+        # on the very same edge (ADR 0021's decoder slot-race fix made this
+        # legal-and-correct). Resetting ones_in_window happens in the first
+        # block (window closing), so a same-cycle transfer added in the
+        # second block correctly lands in the fresh next-window accumulator
+        # -- an `elif` would silently drop that sample from every window's
+        # count instead (independent-audit finding).
         if dut.valid_binary_out.value == 1:
             windows_seen += 1
             assert int(dut.binary_out.value) == ones_in_window, (
@@ -131,7 +140,7 @@ async def product_matches_golden_model_over_multiple_windows(dut):
             ones_in_window = 0
             if windows_seen >= 3:
                 break
-        elif int(dut.u_multiplier.valid_stochastic_out.value) == 1 and int(
+        if int(dut.u_multiplier.valid_stochastic_out.value) == 1 and int(
             dut.u_multiplier.ready_stochastic_out.value
         ) == 1:
             ones_in_window += int(dut.u_multiplier.stochastic_out.value)

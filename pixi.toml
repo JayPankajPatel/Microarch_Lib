@@ -7,8 +7,8 @@ version = "0.1.0"
 
 [tasks]
 setup-sby = "rm -rf /tmp/sby-src-microarch && git clone --depth 1 https://github.com/YosysHQ/sby /tmp/sby-src-microarch && make -C /tmp/sby-src-microarch install PREFIX=$CONDA_PREFIX && rm -rf /tmp/sby-src-microarch"
-lint = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && MOD=$(grep -oP \"(?<=^module )\\w+\" \"$1\" | head -1) && exec verilator --lint-only -Wall $INCDIRS $SOURCES --top-module \"$MOD\"' _"
-lint-all = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && exec verilator --lint-only -Wall $INCDIRS $SOURCES \"$@\"' _"
+lint = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && MOD=$(grep -oP \"(?<=^module )\\w+\" \"$1\" | head -1) && exec verilator --lint-only -Wall -Wno-GENUNNAMED -Wno-DECLFILENAME $INCDIRS $SOURCES --top-module \"$MOD\"' _"
+lint-all = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && exec verilator --lint-only -Wall -Wno-GENUNNAMED -Wno-DECLFILENAME -Wno-MULTITOP $INCDIRS $SOURCES \"$@\"' _"
 sweep-widths = "bash -c 'cd \"$INIT_CWD\" && exec \"$PIXI_PROJECT_ROOT/scripts/sweep_widths.sh\" \"$@\"' _"
 run-regression = "bash -c 'exec \"$PIXI_PROJECT_ROOT/scripts/run_regression.sh\"'"
 render-waveform = "bash -c 'cd \"$INIT_CWD\" && exec \"$PIXI_PROJECT_ROOT/scripts/render_waveform.sh\" \"$@\"' _"

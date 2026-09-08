@@ -170,12 +170,26 @@ async def back_to_back_bursts_stay_aligned_under_tight_backpressure_coupling(dut
         # Completion check comes before recording this snapshot's transfer
         # (see single_window_binary_out_matches_actual_transferred_bits for
         # why: a transfer condition read the same cycle valid_binary_out
-        # first reads 1 predicts the *next* window's first sample).
+        # first reads 1 predicts the *next* window's first sample) --
+        # window-boundary recording uses len(tape) as it stands BEFORE any
+        # transfer this same cycle appends to it, so a same-cycle transfer
+        # is correctly excluded from the window that just closed and
+        # included in the next one.
+        #
+        # These must be two independent `if`s, not `if`/`elif`: the decoder
+        # can complete a window AND accept a new sample for the next window
+        # on the very same edge (ADR 0021's decoder slot-race fix made this
+        # legal-and-correct), so both bookkeeping updates can be needed on
+        # the same cycle. An `elif` here would silently skip recording that
+        # concurrent transfer into the tape, undercounting the next
+        # window's actually-transferred bits by one and producing a
+        # spurious binary_out mismatch that looks like an RTL regression
+        # but is really a test-bookkeeping gap (independent-audit finding).
         if dut.valid_binary_out.value == 1 and (
             not windows or windows[-1][1] != len(tape)
         ):
             windows.append((int(dut.binary_out.value), len(tape)))
-        elif dut.valid_stochastic_link.value == 1 and dut.ready_stochastic_link.value == 1:
+        if dut.valid_stochastic_link.value == 1 and dut.ready_stochastic_link.value == 1:
             tape.append((int(dut.stochastic_link.value), burst_ordinal))
 
     assert len(windows) >= 6, (

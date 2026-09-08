@@ -116,6 +116,12 @@ async def sum_matches_golden_model_over_multiple_windows(dut):
         # Check completion *before* recording this cycle's transfer -- see
         # test_b_mult_s_integration for why (a same-cycle next-window
         # sample can otherwise leak into the previous window's total).
+        #
+        # Independent `if`s, not `if`/`elif`: the decoder can complete a
+        # window AND accept a new sample for the next window on the same
+        # edge (ADR 0021's decoder slot-race fix) -- an `elif` would
+        # silently drop that sample instead of counting it into the fresh
+        # (just-reset) next-window accumulator (independent-audit finding).
         if dut.valid_binary_out.value == 1:
             windows_seen += 1
             assert int(dut.binary_out.value) == ones_in_window, (
@@ -126,7 +132,7 @@ async def sum_matches_golden_model_over_multiple_windows(dut):
             ones_in_window = 0
             if windows_seen >= 3:
                 break
-        elif int(dut.u_adder.valid_stochastic_out.value) == 1 and int(
+        if int(dut.u_adder.valid_stochastic_out.value) == 1 and int(
             dut.u_adder.ready_stochastic_out.value
         ) == 1:
             ones_in_window += int(dut.u_adder.stochastic_out.value)

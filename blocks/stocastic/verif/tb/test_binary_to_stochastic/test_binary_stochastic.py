@@ -1,8 +1,7 @@
 import random
 
 import cocotb
-from cocotb.triggers import RisingEdge
-from ma_clkrst import reset_dut, start_clock
+from ma_clkrst import clock_step, drive, reset_dut, start_clock
 from pylfsr import LFSR
 
 # interface
@@ -26,14 +25,29 @@ from pylfsr import LFSR
 #    stochastic bits (one full clean galois_lfsr period -- see GitHub issue
 #    #2 and docs/adr/0005/0006 for why it isn't 2**WIDTH), one per cycle it
 #    isn't stalled, each equal to
-#    (lfsr_state < accepted_binary_in). valid_stochastic_out stays high for
-#    the entire burst -- it does not toggle per bit.
+#    (lfsr_state <= accepted_binary_in). valid_stochastic_out stays high for
+#    the entire burst -- it does not toggle per bit. (`<=`, not `<`: the
+#    LFSR never visits its all-zero state, so lfsr_state ranges over
+#    {1,...,2**WIDTH-1} across a burst -- `<` under-encoded every positive
+#    binary_in by exactly one 1-bit; `<=` gives exactly binary_in ones out
+#    of the burst for every value 0..2**WIDTH-1, independent-audit finding.)
 #  - Downstream backpressure (ready_stochastic_out == 0) holds the current
 #    bit steady (the LFSR/counter simply don't advance that cycle) and
 #    stretches the burst by exactly one cycle per stalled cycle.
 #  - ready_binary_in reasserts the cycle after the last bit of the burst is
 #    consumed (ready_stochastic_out high on that last-bit cycle), and the
 #    converter is ready to accept a new binary_in from then on.
+#
+# All input changes go through drive() (FallingEdge-based) and all signal
+# reads through clock_step() (RisingEdge+ReadOnly) -- see ma_clkrst.py's
+# module docstring and docs/adr/0021. `en = r.busy && ready_stochastic_out`
+# does combinationally depend on a freshly-driven external input
+# (ready_stochastic_out), but with FallingEdge-based driving its effect on
+# whether the LFSR/counter advance is deterministic on the very next edge --
+# the "settling edge" workaround an earlier version of this file needed
+# (write not visible until the edge *after* the next one) was a symptom of
+# driving values right around a bare RisingEdge, not a fundamental property
+# of this signal.
 
 
 # Mirrors galois_lfsr.sv's TAPS_LUT exactly -- keep these two tables in sync.
@@ -109,46 +123,53 @@ def golden_model(width, lfsr_state, binary_in_value):
     state = state_to_int(initstate, width)
     bits = []
     for _ in range((1 << width) - 1):
-        bits.append(1 if state < binary_in_value else 0)
+        bits.append(1 if state <= binary_in_value else 0)
         ref.next()
         state = state_to_int(ref.state, width)
     return bits, state
 
 
 async def accept_transfer(dut, binary_in_value):
-    """Drive one binary_in handshake; returns on the cycle acceptance takes
-    effect (ready_binary_in drops from its idle-high to 0), at which point
-    bit 0 of the burst is already valid on stochastic_out this same cycle."""
-    dut.binary_in.value = binary_in_value
-    dut.valid_binary_in.value = 1
-    dut.ready_stochastic_out.value = 1
-    while True:
-        await RisingEdge(dut.clk)
-        if dut.ready_binary_in.value == 0:
-            break
-    dut.valid_binary_in.value = 0
+    """Drive one binary_in handshake. Assumes the converter is already idle
+    (ready_binary_in == 1) when called -- true at every call site in this
+    file -- so acceptance fires deterministically on the very first edge:
+    !r.busy && valid_binary_in needs no settling or polling once
+    valid_binary_in/binary_in/ready_stochastic_out are FallingEdge-driven.
+
+    Deliberately does NOT drive valid_binary_in low afterward: drive() is
+    only safe to call once per RisingEdge, paired with the clock_step()
+    that follows it (see ma_clkrst.py) -- a second drive() here with no
+    intervening clock_step() would silently wait for the *next* FallingEdge
+    a full period later, burning a whole cycle unobserved (this exact bug
+    produced "stochastic_out desyncs from golden model by one bit" and
+    "valid drops mid-burst" failures during the edge-timing migration).
+    Callers that need valid_binary_in dropped do so via stream_burst's
+    `drop_valid_binary_in` (default True), which folds it into the first
+    drive() *inside* the loop instead of spending a standalone one here."""
+    await drive(dut, binary_in=binary_in_value, valid_binary_in=1, ready_stochastic_out=1)
+    await clock_step(dut)
+    assert dut.ready_binary_in.value == 0, "acceptance should fire on the very first edge from idle"
 
 
-async def stream_burst(dut, expected_bits, stall_at=None, stall_len=0):
+async def stream_burst(dut, expected_bits, stall_at=None, stall_len=0,
+                        drop_valid_binary_in=True, extra_first_drive=None):
     """Consume one full burst, checking each bit against `expected_bits`
     (from golden_model) and the valid/ready protocol. `stall_at` (if given)
     is the bit index at which to hold ready_stochastic_out low for
     `stall_len` cycles before resuming, to exercise the backpressure/stall
     behavior from the diagram.
 
-    Timing note: a value written to ready_stochastic_out from a running
-    cocotb coroutine isn't visible to the DUT's combinational `en` logic
-    until the clock edge *after* the next one -- the edge immediately
-    following a write still behaves as if the old value were still driven
-    (confirmed empirically: en reads back stale in the same instant the
-    write is issued, and one extra LFSR advance slips through on the very
-    next edge). Both dropping and re-raising ready_stochastic_out therefore
-    need one "settling" edge before the new value's effect is real; that
-    settling bit is still checked against the golden model (it's a normal
-    bit, not yet an actual stall), just not yet subject to the hold check.
+    `drop_valid_binary_in`/`extra_first_drive` fold one-time value changes
+    into whichever drive() call happens first in the loop below, instead of
+    spending a standalone drive() before calling this function -- two
+    drive()s in a row with no clock_step() between them silently skips a
+    full cycle (see accept_transfer's docstring and docs/adr/0021).
     """
     bits_consumed = 0
     saw_valid = False
+    pending_drive = dict(extra_first_drive) if extra_first_drive else {}
+    if drop_valid_binary_in:
+        pending_drive["valid_binary_in"] = 0
 
     while bits_consumed < len(expected_bits):
         assert (
@@ -164,37 +185,71 @@ async def stream_burst(dut, expected_bits, stall_at=None, stall_len=0):
         )
 
         if stall_at is not None and bits_consumed == stall_at and stall_len > 0:
-            dut.ready_stochastic_out.value = 0
-
-            await RisingEdge(dut.clk)  # settling edge: write not visible yet
-            bits_consumed += 1
-            assert int(dut.stochastic_out.value) == expected_bits[bits_consumed], (
-                f"settling bit {bits_consumed} (ready_stochastic_out drop "
-                f"not yet visible to the DUT) didn't match the golden model"
-            )
-
-            held_bit = int(dut.stochastic_out.value)
+            held_bit = actual_bit
+            await drive(dut, ready_stochastic_out=0, **pending_drive)
+            pending_drive = {}
             for _ in range(stall_len):
-                await RisingEdge(dut.clk)
-                assert (
-                    dut.valid_stochastic_out.value == 1
-                ), "valid_stochastic_out must stay asserted through a stall"
-                assert (
-                    int(dut.stochastic_out.value) == held_bit
-                ), "stochastic_out must hold steady while stalled"
+                await clock_step(dut)
+                assert dut.valid_stochastic_out.value == 1, "valid_stochastic_out must stay asserted through a stall"
+                assert int(dut.stochastic_out.value) == held_bit, "stochastic_out must hold steady while stalled"
 
-            dut.ready_stochastic_out.value = 1
-            await RisingEdge(dut.clk)  # settling edge: still behaves as stalled
-            assert int(dut.stochastic_out.value) == held_bit, (
-                "resume settling cycle (ready_stochastic_out raise not yet "
-                "visible to the DUT) should still show the held bit"
-            )
+            await drive(dut, ready_stochastic_out=1)
+            await clock_step(dut)
+            # This edge is the real transfer of bit `stall_at` (en=1 fires
+            # using the just-restored ready=1) -- the state now visible is
+            # the NEXT bit, so advance bits_consumed once and continue the
+            # loop's normal path.
+            bits_consumed += 1
             continue
 
-        await RisingEdge(dut.clk)
+        await drive(dut, **pending_drive)
+        pending_drive = {}
+        await clock_step(dut)
         bits_consumed += 1
 
     assert saw_valid, "burst never asserted valid_stochastic_out"
+
+
+@cocotb.test()
+async def exhaustive_input_to_density_contract(dut):
+    """The closed-form numerical contract this module exists to implement:
+    for EVERY possible binary_in value x (0..2**WIDTH-1), a full burst must
+    contain EXACTLY x ones out of its 2**WIDTH-1 bits -- independent of
+    golden_model or any other RTL-derived reference, a direct check against
+    the intended x/(2**WIDTH-1) probability mapping.
+
+    This is the test that would have caught the encoder's off-by-one
+    (`random_number < binary_in_d` produced x-1 ones, not x, for every
+    positive x, and made x=0 and x=1 both produce all-zero streams --
+    independent-audit finding). No prior test in this suite asserted this
+    exact-count contract directly; the per-bit checks above only compare
+    against golden_model, which had independently copied the same `<` rule
+    and would not have caught a bug both sides shared.
+    """
+    period_ns = 10
+    width = len(dut.binary_in)
+    max_value = (1 << width) - 1
+
+    start_clock(dut.clk, period_ns)
+    await drive(dut, valid_binary_in=0, binary_in=0, ready_stochastic_out=0)
+    await reset_dut(dut.rst_n, dut.clk, 5)
+
+    for binary_in_value in range(max_value + 1):
+        await accept_transfer(dut, binary_in_value)
+        pending_drive = {"valid_binary_in": 0}
+        ones = 0
+        for _ in range(max_value):
+            assert dut.valid_stochastic_out.value == 1, (
+                f"binary_in={binary_in_value}: valid_stochastic_out dropped mid-burst"
+            )
+            ones += int(dut.stochastic_out.value)
+            await drive(dut, **pending_drive)
+            pending_drive = {}
+            await clock_step(dut)
+        assert ones == binary_in_value, (
+            f"binary_in={binary_in_value}: burst contained {ones} ones out of "
+            f"{max_value}, expected exactly {binary_in_value}"
+        )
 
 
 @cocotb.test()
@@ -205,6 +260,7 @@ async def single_transfer_matches_waveform_protocol(dut):
     max_value = (1 << width) - 1
 
     start_clock(dut.clk, period_ns)
+    await drive(dut, valid_binary_in=0, binary_in=0, ready_stochastic_out=0)
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     assert dut.ready_binary_in.value == 1, "converter should be idle-ready after reset"
@@ -216,7 +272,8 @@ async def single_transfer_matches_waveform_protocol(dut):
     await accept_transfer(dut, binary_in_value)
     await stream_burst(dut, expected_bits)
 
-    await RisingEdge(dut.clk)
+    await drive(dut)
+    await clock_step(dut)
     assert dut.valid_stochastic_out.value == 0, "valid must drop after the last bit"
     assert (
         dut.ready_binary_in.value == 1
@@ -232,21 +289,22 @@ async def stall_holds_bit_and_stretches_busy(dut):
     max_value = (1 << width) - 1
 
     start_clock(dut.clk, period_ns)
+    await drive(dut, valid_binary_in=0, binary_in=0, ready_stochastic_out=0)
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     init_seed = int(dut.RNG.INIT_SEED.value)
     binary_in_value = random.randint(0, max_value)
     expected_bits, _ = golden_model(width, init_seed, binary_in_value)
 
-    # stall_at must leave room for stream_burst's post-stall "settling bit"
-    # check (it indexes expected_bits[stall_at+1]) -- bit 2 is safely
-    # mid-burst for WIDTH>=3 (burst length 2**WIDTH-1 >= 7), but at WIDTH=2
-    # the burst is only 3 bits long and bit 2 is the last one, so clamp.
+    # stall_at leaves room for the post-stall bit: bit 2 is safely mid-burst
+    # for WIDTH>=3 (burst length 2**WIDTH-1 >= 7), but at WIDTH=2 the burst
+    # is only 3 bits long and bit 2 is the last one, so clamp.
     stall_at = min(2, len(expected_bits) - 2)
     await accept_transfer(dut, binary_in_value)
     await stream_burst(dut, expected_bits, stall_at=stall_at, stall_len=2)
 
-    await RisingEdge(dut.clk)
+    await drive(dut)
+    await clock_step(dut)
     assert dut.valid_stochastic_out.value == 0
     assert dut.ready_binary_in.value == 1
 
@@ -269,6 +327,7 @@ async def back_to_back_transfers(dut):
     max_value = (1 << width) - 1
 
     start_clock(dut.clk, period_ns)
+    await drive(dut, valid_binary_in=0, binary_in=0, ready_stochastic_out=0)
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     lfsr_state = int(dut.RNG.INIT_SEED.value)
@@ -283,7 +342,8 @@ async def back_to_back_transfers(dut):
         expected_bits, lfsr_state = golden_model(width, lfsr_state, binary_in_value)
         await accept_transfer(dut, binary_in_value)
         await stream_burst(dut, expected_bits)
-        await RisingEdge(dut.clk)
+        await drive(dut)
+        await clock_step(dut)
         assert dut.ready_binary_in.value == 1
 
 
@@ -307,6 +367,7 @@ async def continuous_valid_binary_in_zero_bubble_back_to_back(dut):
     max_value = (1 << width) - 1
 
     start_clock(dut.clk, period_ns)
+    await drive(dut, valid_binary_in=0, binary_in=0, ready_stochastic_out=0)
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     lfsr_state = int(dut.RNG.INIT_SEED.value)
@@ -319,22 +380,21 @@ async def continuous_valid_binary_in_zero_bubble_back_to_back(dut):
     expected_bits_1, lfsr_state = golden_model(width, lfsr_state, binary_in_1)
     expected_bits_2, lfsr_state = golden_model(width, lfsr_state, binary_in_2)
 
-    dut.binary_in.value = binary_in_1
-    dut.valid_binary_in.value = 1
-    dut.ready_stochastic_out.value = 1
-    while True:
-        await RisingEdge(dut.clk)
-        if dut.ready_binary_in.value == 0:
-            break
+    await drive(dut, binary_in=binary_in_1, valid_binary_in=1, ready_stochastic_out=1)
+    await clock_step(dut)
+    assert dut.ready_binary_in.value == 0, "acceptance should fire on the very first edge from idle"
 
     # Burst 1 accepted. Immediately swap binary_in to the second value while
     # keeping valid_binary_in asserted the whole time -- this is the
     # "producer never drops valid, always has the next value queued up"
     # scenario. If binary_in_d were ever wrongly re-latched mid-burst, this
-    # would corrupt burst 1's bits with binary_in_2 partway through.
-    dut.binary_in.value = binary_in_2
-
-    await stream_burst(dut, expected_bits_1)
+    # would corrupt burst 1's bits with binary_in_2 partway through. Folded
+    # into stream_burst's first internal drive() (drop_valid_binary_in=False
+    # keeps valid_binary_in held) rather than a standalone drive() here --
+    # two drive()s with no clock_step() between them silently skips a full
+    # cycle (see accept_transfer's docstring, docs/adr/0021).
+    await stream_burst(dut, expected_bits_1, drop_valid_binary_in=False,
+                        extra_first_drive={"binary_in": binary_in_2})
 
     # This is the one register-latency idle cycle every registered-output
     # FSM needs: ready_binary_in has *just* become 1 (rin computed on the
@@ -350,7 +410,8 @@ async def continuous_valid_binary_in_zero_bubble_back_to_back(dut):
     # asserted going into this cycle, the accept condition fires this same
     # cycle -- so burst 2 must be visibly running by the very next edge,
     # with no *additional* delay beyond that one unavoidable idle cycle.
-    await RisingEdge(dut.clk)
+    await drive(dut)
+    await clock_step(dut)
     assert dut.ready_binary_in.value == 0, (
         "burst 2 should be accepted immediately (no extra delay beyond the "
         "one unavoidable register-latency cycle), since valid_binary_in was "
@@ -358,9 +419,9 @@ async def continuous_valid_binary_in_zero_bubble_back_to_back(dut):
     )
     assert dut.valid_stochastic_out.value == 1
 
-    dut.valid_binary_in.value = 0
     await stream_burst(dut, expected_bits_2)
 
-    await RisingEdge(dut.clk)
+    await drive(dut)
+    await clock_step(dut)
     assert dut.valid_stochastic_out.value == 0
     assert dut.ready_binary_in.value == 1

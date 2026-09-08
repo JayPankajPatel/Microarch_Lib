@@ -286,6 +286,13 @@ async def scaled_sum_statistical_property(dut):
         ones += int(dut.stochastic_out.value)
 
     frequency = ones / n
+    # 0.05, not an arbitrary-looking number: select is only APPROXIMATELY
+    # 50/50, never exactly (see stochastic_adder.sv's own comment) -- a
+    # maximal-length LFSR's odd period makes an exact single-bit 50/50
+    # split mathematically impossible. At the default SELECT_LFSR_WIDTH=5
+    # that structural bias alone is ~0.016 (16/31 vs 1/2), so this
+    # tolerance has to clear that PLUS real sampling noise at n=2000, not
+    # just sampling noise alone -- independent-audit finding.
     assert abs(frequency - 0.5) < 0.05, (
         f"observed 1-frequency {frequency:.4f} over {n} samples is too far from the "
         f"expected (A+B)/2 = 0.5 -- select bit may be stuck, biased, or correlated with A/B"

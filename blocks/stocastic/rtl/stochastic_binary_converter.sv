@@ -50,31 +50,58 @@ module stochastic_to_binary #(
   } bin_to_sto_t;
   bin_to_sto_t r, rin;
 
+  // Output side is a proper one-entry elastic register (skid buffer):
+  // valid_binary_out marks the slot occupied, and the window only latches
+  // into it -- reopening the accumulator in the same transition -- once the
+  // slot is empty or is being drained this same cycle. A prior version
+  // decided whether to reopen using ready_binary_out sampled on the cycle
+  // BEFORE valid_binary_out ever became externally visible, which is a
+  // stale/speculative snapshot: if the consumer's ready happened to differ
+  // between that cycle and the one where valid was actually visible, the
+  // module would drop a result that was never actually transferred
+  // (confirmed independent-audit finding). Gating strictly on
+  // slot_available -- evaluated using ready_binary_out and valid_binary_out
+  // AS THEY STAND THE SAME CYCLE -- removes that race entirely.
+  logic slot_available;
+  assign slot_available = !r.valid_binary_out || ready_binary_out;
+
   always_comb begin
     rin = r;
-    if (r.last_sample_seen && !r.valid_binary_out) begin
-      // window just finished -- latch and announce
+    if (r.last_sample_seen && slot_available) begin
+      // window complete and the slot is free (empty, or drained this same
+      // cycle) -- latch the result and reopen the accumulator for the next
+      // window in the same transition (zero-bubble when draining).
+      // ready_stochastic_in is low whenever r.last_sample_seen is high, so
+      // accept_this_cycle cannot also be true here -- no conflict with the
+      // independent branch below.
       rin.binary_out_d = r.ones_count;
       rin.valid_binary_out = 1'b1;
-      if (ready_binary_out) begin
-        // consumer already ready -- reopen in the same transition, zero bubble
-        rin.ones_count = '0;
-        rin.last_sample_seen = 1'b0;
-      end
-    end else if (r.last_sample_seen && ready_binary_out) begin
-      // slow path: was already showing valid from a prior cycle, consumer
-      // just became ready now -- consume and reopen
       rin.ones_count = '0;
       rin.last_sample_seen = 1'b0;
-      rin.valid_binary_out = 1'b0;
-    end else if (r.valid_binary_out && !r.last_sample_seen) begin
-      // fast-path aftermath: already reopened (last_sample_seen cleared,
-      // unlike the still-holding slow-path case above) but still showing
-      // last cycle's valid pulse -- clear it now
-      rin.valid_binary_out = 1'b0;
-    end else if (accept_this_cycle) begin
-      rin.ones_count = r.ones_count + (stochastic_in == 1'b1);
-      rin.last_sample_seen = boundary_in;
+    end else begin
+      // Output-slot draining and input accumulation touch disjoint state
+      // (valid_binary_out vs. ones_count/last_sample_seen) and can both
+      // happen on the same edge -- e.g. a completed-but-unconsumed result
+      // sitting in the slot gets drained (ready_binary_out) on the exact
+      // same cycle a new sample for the NEXT window is accepted
+      // (valid_stochastic_in && ready_stochastic_in, since last_sample_seen
+      // is 0 while accumulating). A prior version chained these as
+      // mutually-exclusive `else if` branches: the drain branch firing
+      // silently prevented the accept branch from ever running, discarding
+      // an input sample the module had already told the producer it
+      // accepted (confirmed independent-audit finding, since
+      // ready_stochastic_in doesn't depend on the output side at all).
+      // Two independent `if`s, not `else if`, so both can fire together.
+      if (r.valid_binary_out && ready_binary_out) begin
+        // slot drained this cycle with no new window ready to replace it --
+        // clear valid rather than let the consumer see a "successful"
+        // valid&&ready handshake against a stale repeat next cycle.
+        rin.valid_binary_out = 1'b0;
+      end
+      if (accept_this_cycle) begin
+        rin.ones_count = r.ones_count + (stochastic_in == 1'b1);
+        rin.last_sample_seen = boundary_in;
+      end
     end
   end
   always_ff @(posedge clk or negedge rst_n) begin

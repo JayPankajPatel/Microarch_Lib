@@ -1,7 +1,14 @@
 `include "ma_assert.svh"
 module counter #(
     /* verilator lint_off WIDTHEXPAND */
-    parameter int UPTO = 100
+    // longint unsigned (64 bits), not int (32-bit signed): a 32-bit
+    // parameter can't hold UPTO=2^64-1 (the largest value
+    // binary_stochastic_converter's WIDTH<=64 needs), and worse, silently
+    // reinterprets any value >= 2^31 as negative -- independent-audit
+    // finding, confirmed via Yosys elaboration showing UPTO going negative
+    // at the caller's WIDTH=32 and out_counter's port width simply not
+    // matching the caller's wire at WIDTH=33/64.
+    parameter longint unsigned UPTO = 100
 ) (
     input logic clk,
     input logic en,

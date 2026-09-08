@@ -10,7 +10,9 @@
 // the verified async-reset default for every ASIC-target use.
 module counter_sync #(
     /* verilator lint_off WIDTHEXPAND */
-    parameter int UPTO = 100
+    // See counter.sv's identical comment: `int` (32-bit signed) can't hold
+    // UPTO=2^64-1 and silently reinterprets values >= 2^31 as negative.
+    parameter longint unsigned UPTO = 100
 ) (
     input logic clk,
     input logic en,

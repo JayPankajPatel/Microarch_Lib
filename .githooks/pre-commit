@@ -1,8 +1,24 @@
 #!/usr/bin/env bash
 # Pre-commit lint gate for SystemVerilog RTL blocks.
-# Runs `verilator --lint-only` on every staged blocks/*/rtl/*.sv file so a
+# Runs `pixi run lint <file>` on every staged blocks/*/rtl/*.sv file so a
 # bad elaboration-time parameter (or any other lint issue) can't get
 # committed, regardless of whether anyone ran a sim first.
+#
+# `pixi run lint` (see pixi.toml) resolves the FULL Bender-derived source
+# graph and the file's own actual top module name (via `grep`, not a
+# filename guess) before invoking verilator -- linting the staged file in
+# isolation, as an earlier version of this hook did, spuriously fails with
+# "module missing" for any multi-file module that instantiates a submodule
+# (e.g. binary_stochastic_converter needing counter and galois_lfsr), and
+# guessing the top module from the filename fails for the handful of files
+# whose module name doesn't match their filename (e.g.
+# stochastic_binary_converter.sv contains module stochastic_to_binary) --
+# both independent-audit findings. `pixi run lint` also suppresses the
+# GENUNNAMED/DECLFILENAME warning classes specifically (pre-existing,
+# accepted noise from the shared MA_ASSERT_ELABOR macro's generate blocks
+# and a few of those same filename/module-name mismatches) -- without that,
+# `-Wall` would fail this gate on every commit touching any RTL file in
+# this repo, elaboration-checked or not, making the gate worse than useless.
 #
 # Activate once per clone with: git config core.hooksPath .githooks
 
@@ -12,7 +28,7 @@ files=$(git diff --cached --name-only --diff-filter=ACM -- 'blocks/*/rtl/*.sv')
 status=0
 for f in $files; do
   echo "Linting $f..."
-  verilator --lint-only -Wall -Icommon/rtl "$f" || status=1
+  pixi run lint "$f" || status=1
 done
 
 if [ "$status" -ne 0 ]; then

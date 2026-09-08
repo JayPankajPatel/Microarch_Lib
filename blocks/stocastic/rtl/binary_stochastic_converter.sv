@@ -33,10 +33,20 @@ module binary_stochastic_converter #(
   // burst duplicated the first bit's LFSR state (pigeonhole) and each
   // burst left the LFSR one extra state past a clean period, corrupting
   // both intra-burst independence and burst-to-burst phase alignment.
-  localparam [$clog2((1 << n))-1:0] target_cycle_count = (1 << ((n))) - 2;
+  // Computed as (all-n-bits-one) - 1 rather than (1 << n) - 2: `1` is an
+  // unsized literal (32-bit `int` by default), so `1 << n` silently
+  // overflows to 0 for n>=32 (a 32-bit value shifted left by 32+ bit
+  // positions shifts every bit out, per the LRM) -- independent-audit
+  // finding. `'1` self-sizes to this declaration's own width (n bits) with
+  // no explicit power-of-two computation to overflow, at any WIDTH this
+  // module's own elaboration check allows. `$clog2((1 << n))` was always
+  // mathematically equal to n itself (ceil(log2(2^n)) == n for n>=1), so
+  // sizing this declaration as plain [n-1:0] is equivalent, not an
+  // approximation -- and never produces the ascending-range collapse the
+  // old $clog2(0)-1 computation could.
+  localparam logic [n-1:0] target_cycle_count = '1 - 1'b1;
   logic [n-1:0] random_number;
-  /* verilator lint_off ASCRANGE */
-  logic [$clog2((1 << n))-1:0] out_counter;
+  logic [n-1:0] out_counter;
   logic en;
   // out_counter is shared across bursts (never reset by rst_n mid-run) and
   // is compared against target_cycle_count as an absolute value each cycle
@@ -151,5 +161,18 @@ module binary_stochastic_converter #(
   assign en = (r.busy && ready_stochastic_out);
   assign ready_binary_in = r.ready_binary_in;
   assign valid_stochastic_out = r.valid_stochastic_out;
-  assign stochastic_out = ((random_number < r.binary_in_d) ? 1'b1 : 1'b0);
+  // The LFSR visits every nonzero state exactly once per period (its
+  // all-zero state is unreachable -- ADR 0005/0006), i.e. random_number
+  // ranges over {1, ..., 2^WIDTH-1} across one full burst. With a strict
+  // `<`, the count of those values less than x is (x-1) for x>=1 -- every
+  // positive input was under-encoded by exactly one 1-bit per burst, and
+  // x=0 and x=1 both produced an all-zero stream (silently indistinguishable
+  // at the encoder's output). `<=` gives the correct count of x for every
+  // x in {0, ..., 2^WIDTH-1}: x=0 still yields all zeros, x=2^WIDTH-1
+  // (max) yields all ones, and every value in between yields exactly x
+  // ones out of the (2^WIDTH-1)-bit burst -- matching the x/(2^WIDTH-1)
+  // probability convention this whole library's burst length already
+  // assumes (independent-audit finding; see the encoder cocotb suite's
+  // exhaustive per-value ones-count test added alongside this fix).
+  assign stochastic_out = ((random_number <= r.binary_in_d) ? 1'b1 : 1'b0);
 endmodule : binary_stochastic_converter
