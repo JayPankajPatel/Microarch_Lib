@@ -23,11 +23,9 @@ Supported platforms are `linux-64` and `osx-64` only — Yosys's conda-forge fee
 pixi run verilator --lint-only -Wall -Icommon/rtl blocks/<name>/rtl/<file>.sv
 ```
 
-A pre-commit hook runs this automatically on every staged `blocks/*/rtl/*.sv` file. It's not active by default per clone — enable it once with:
-
-```bash
-git config core.hooksPath .githooks
-```
+Run lint explicitly when it is useful; this repository intentionally has no
+pre-commit hook, so a broken or incomplete project-wide source manifest cannot
+block unrelated commits.
 
 ## Architecture
 
