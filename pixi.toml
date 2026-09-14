@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [tasks]
 setup-sby = "rm -rf /tmp/sby-src-microarch && git clone --depth 1 https://github.com/YosysHQ/sby /tmp/sby-src-microarch && make -C /tmp/sby-src-microarch install PREFIX=$CONDA_PREFIX && rm -rf /tmp/sby-src-microarch"
+setup-bender="curl --proto '=https' --tlsv1.2 https://pulp-platform.github.io/bender/init -sSf | sh"
 lint = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && MOD=$(grep -oP \"(?<=^module )\\w+\" \"$1\" | head -1) && exec verilator --lint-only -Wall -Wno-GENUNNAMED -Wno-DECLFILENAME $INCDIRS $SOURCES --top-module \"$MOD\"' _"
 lint-all = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && exec verilator --lint-only -Wall -Wno-GENUNNAMED -Wno-DECLFILENAME -Wno-MULTITOP $INCDIRS $SOURCES \"$@\"' _"
 sweep-widths = "bash -c 'cd \"$INIT_CWD\" && exec \"$PIXI_PROJECT_ROOT/scripts/sweep_widths.sh\" \"$@\"' _"
@@ -24,6 +25,6 @@ ty = ">=0.0.70,<0.0.71"
 pytest = ">=9.1.1,<10"
 
 [pypi-dependencies]
+cocotbext-axi = ">=0.1.26, <0.2"
 pylfsr = ">=1.0.7, <2"
 wavedrom = ">=2.0.3.post3, <3"
-

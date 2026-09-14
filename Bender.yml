@@ -15,7 +15,7 @@ sources:
   - include_dirs:
       - common/rtl
     files:
-      - blocks/basic/*.sv
+      - blocks/basic/rtl/*.sv
       - blocks/stocastic/pnr/*.sv
       - blocks/stocastic/rtl/*.sv
 
