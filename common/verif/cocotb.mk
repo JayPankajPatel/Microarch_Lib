@@ -28,7 +28,12 @@ COCOTB_TEST_MODULES ?= NONE
 # Make shared verification helpers importable from every block testbench.
 export PYTHONPATH := $(GIT_TOP)/common/verif:$(PYTHONPATH)
 
-# Cocotb appends EXTRA_ARGS to the Verilator compile and simulation commands.
+# Cocotb appends EXTRA_ARGS to the compile and simulation commands -- these
+# two flags are Verilator-specific (waveform tracing) and would be rejected
+# by another simulator's CLI (e.g. `SIM=vcs`), so they're gated the same way
+# COMPILE_ARGS's Verilator-only flags are above.
+ifeq ($(SIM),verilator)
 EXTRA_ARGS += --trace --trace-structs
+endif
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
