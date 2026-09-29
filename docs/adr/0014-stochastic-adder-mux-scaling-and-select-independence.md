@@ -114,8 +114,8 @@ transfers, not wall-clock cycles.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/stochastic_adder.sv`
-- `blocks/stocastic/verif/tb/test_stochastic_adder/`
+- `blocks/stochastic/rtl/stochastic_adder.sv`
+- `blocks/stochastic/verif/tb/test_stochastic_adder/`
 
 ## More Information
 

@@ -120,7 +120,7 @@ the exact condition that already gated the completion branch in
   block, confirmed unchanged by this fix).
 - `test_binary_to_stochastic`: 4/4 passing, confirmed across multiple
   random seeds.
-- `pixi run sweep-widths blocks/stocastic/verif/tb/test_binary_to_stochastic
+- `pixi run sweep-widths blocks/stochastic/verif/tb/test_binary_to_stochastic
   2 3 4 5 6 7 8 9 10 11 12 13 14 15 16`: 4/4 passing at every width
   (`WIDTH=2` required the `stall_at` clamp above; all others passed
   unmodified).
@@ -142,8 +142,8 @@ the exact condition that already gated the completion branch in
 ## Affected Files
 
 - `blocks/basic/counter.sv`
-- `blocks/stocastic/rtl/binary_stochastic_converter.sv`
-- `blocks/stocastic/verif/tb/test_binary_to_stochastic/test_binary_stochastic.py`
+- `blocks/stochastic/rtl/binary_stochastic_converter.sv`
+- `blocks/stochastic/verif/tb/test_binary_to_stochastic/test_binary_stochastic.py`
 
 ## More Information
 

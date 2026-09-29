@@ -101,15 +101,15 @@ not about how state is encoded within it.
 
 ### Confirmation
 
-`pixi run verilator --lint-only -Wall -Icommon/rtl -Iblocks/stocastic/rtl
--Iblocks/basic blocks/stocastic/rtl/binary_stochastic_converter.sv`
+`pixi run verilator --lint-only -Wall -Icommon/rtl -Iblocks/stochastic/rtl
+-Iblocks/basic blocks/stochastic/rtl/binary_stochastic_converter.sv`
 produces only the pre-existing, ADR-0004-documented `GENUNNAMED`
 warnings (from `` `MA_ASSERT_INIT ``'s conditional-generate expansion,
 also present on `counter.sv` and `galois_lfsr.sv`) -- no new warnings
 from the restructuring.
 
 `pixi run make` in
-`blocks/stocastic/verif/tb/test_binary_to_stochastic/` (cocotb +
+`blocks/stochastic/verif/tb/test_binary_to_stochastic/` (cocotb +
 Verilator, `WIDTH=4`) exercises exactly the two bugs this ADR
 describes and passes against the corrected RTL:
 
@@ -132,10 +132,10 @@ confirming the shared source list didn't regress.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/binary_stochastic_converter.sv` (restructured
+- `blocks/stochastic/rtl/binary_stochastic_converter.sv` (restructured
   to the `r`/`rin` two-process form; two FSM bugs fixed as part of the
   restructuring)
-- `blocks/stocastic/verif/tb/test_binary_to_stochastic/test_binary_stochastic.py`
+- `blocks/stochastic/verif/tb/test_binary_to_stochastic/test_binary_stochastic.py`
   (replaced the placeholder smoke test with real assertions against
   the waveform-derived protocol)
 

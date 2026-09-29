@@ -65,15 +65,15 @@ Chosen option: **3**.
 ### Which modules got a `_sync` variant
 
 - `blocks/basic/counter_sync.sv`
-- `blocks/stocastic/rtl/galois_lfsr_sync.sv`
-- `blocks/stocastic/rtl/binary_stochastic_converter_sync.sv` (instantiates
+- `blocks/stochastic/rtl/galois_lfsr_sync.sv`
+- `blocks/stochastic/rtl/binary_stochastic_converter_sync.sv` (instantiates
   `counter_sync`/`galois_lfsr_sync`)
-- `blocks/stocastic/rtl/stochastic_binary_converter_sync.sv`, module
+- `blocks/stochastic/rtl/stochastic_binary_converter_sync.sv`, module
   `stochastic_to_binary_sync`
-- `blocks/stocastic/rtl/stochastic_adder_sync.sv` (instantiates
+- `blocks/stochastic/rtl/stochastic_adder_sync.sv` (instantiates
   `galois_lfsr_sync` for its select RNG)
 
-`stochastic_multipler.sv` deliberately got **no** `_sync` variant: per ADR
+`stochastic_multiplier.sv` deliberately got **no** `_sync` variant: per ADR
 0012 it's pure combinational (AND-gate join), has no `always_ff` of its
 own, so the exact same file is reset-style-agnostic and works unmodified
 under either target.
@@ -126,10 +126,10 @@ zero test-file changes — only `COCOTB_TOPLEVEL` was overridden.
 ## Affected Files
 
 - `blocks/basic/counter_sync.sv` (new)
-- `blocks/stocastic/rtl/galois_lfsr_sync.sv` (new)
-- `blocks/stocastic/rtl/binary_stochastic_converter_sync.sv` (new)
-- `blocks/stocastic/rtl/stochastic_binary_converter_sync.sv` (new)
-- `blocks/stocastic/rtl/stochastic_adder_sync.sv` (new)
+- `blocks/stochastic/rtl/galois_lfsr_sync.sv` (new)
+- `blocks/stochastic/rtl/binary_stochastic_converter_sync.sv` (new)
+- `blocks/stochastic/rtl/stochastic_binary_converter_sync.sv` (new)
+- `blocks/stochastic/rtl/stochastic_adder_sync.sv` (new)
 
 ## More Information
 

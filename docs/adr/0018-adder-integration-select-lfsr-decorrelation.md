@@ -92,13 +92,13 @@ independence proof" pattern already established by
   random seeds, including the continuous `last_cycle_a == last_cycle_b`
   assertion holding throughout every run (same simultaneity guarantee as
   the multiplier composition, ADR 0017).
-- Full regression: all 8 test suites in `blocks/stocastic/verif/tb/`
+- Full regression: all 8 test suites in `blocks/stochastic/verif/tb/`
   (encoder, decoder, loopback, multiplier, adder, LFSR, and both
   integration tests) re-run and passing, 25 tests total.
 
 ## Affected Files
 
-- `blocks/stocastic/verif/tb/test_b_add_s_integration/` (new)
+- `blocks/stochastic/verif/tb/test_b_add_s_integration/` (new)
 
 ## More Information
 

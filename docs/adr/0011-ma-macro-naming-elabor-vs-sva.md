@@ -125,9 +125,9 @@ was deleted.
 - `common/rtl/ma_assert_dummy.svh`
 - `common/rtl/sva_macros.svh` (deleted)
 - `blocks/basic/counter.sv`
-- `blocks/stocastic/rtl/binary_stochastic_converter.sv`
-- `blocks/stocastic/rtl/galois_lfsr.sv`
-- `blocks/stocastic/rtl/stochastic_binary_converter.sv`
+- `blocks/stochastic/rtl/binary_stochastic_converter.sv`
+- `blocks/stochastic/rtl/galois_lfsr.sv`
+- `blocks/stochastic/rtl/stochastic_binary_converter.sv`
 - `CLAUDE.md`
 
 ## More Information

@@ -5,7 +5,7 @@
 #   scripts/sweep_widths.sh <testbench-dir> <width> [<width> ...]
 #
 # Example:
-#   scripts/sweep_widths.sh blocks/stocastic/verif/tb/test_binary_to_stochastic 2 3 4 8
+#   scripts/sweep_widths.sh blocks/stochastic/verif/tb/test_binary_to_stochastic 2 3 4 8
 #
 # <testbench-dir> must contain a Makefile with a line matching
 # `COMPILE_ARGS += -GWIDTH=<n>` (the convention every block's tb/*/Makefile

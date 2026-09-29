@@ -121,7 +121,7 @@ accordingly.
 - `common/rtl/ma_assert.svh`
 - `common/rtl/ma_assert_std.svh`
 - `common/rtl/ma_assert_dummy.svh`
-- `blocks/stocastic/rtl/galois_lfsr.sv` (first consumer)
+- `blocks/stochastic/rtl/galois_lfsr.sv` (first consumer)
 
 ## More Information
 

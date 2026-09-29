@@ -163,7 +163,7 @@ accordingly.
 - `common/rtl/ma_assert.svh`
 - `common/rtl/ma_assert_std.svh`
 - `common/rtl/ma_assert_dummy.svh`
-- `blocks/stocastic/rtl/galois_lfsr.sv` (first consumer)
+- `blocks/stochastic/rtl/galois_lfsr.sv` (first consumer)
 
 ## More Information
 
@@ -181,7 +181,7 @@ against the actual file's heading count).
 
 - [ ] **Step 3: Verify cited file paths actually exist**
 
-Run: `ls common/rtl/ma_assert.svh common/rtl/ma_assert_std.svh common/rtl/ma_assert_dummy.svh blocks/stocastic/rtl/galois_lfsr.sv`
+Run: `ls common/rtl/ma_assert.svh common/rtl/ma_assert_std.svh common/rtl/ma_assert_dummy.svh blocks/stochastic/rtl/galois_lfsr.sv`
 Expected: all four paths listed with no "No such file" errors.
 
 - [ ] **Step 4: Commit**
@@ -301,7 +301,7 @@ before repeating — including a full 524,287-state run at `WIDTH=19`.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/galois_lfsr.sv` (`TAPS_LUT` localparam, 28 of 65
+- `blocks/stochastic/rtl/galois_lfsr.sv` (`TAPS_LUT` localparam, 28 of 65
   entries corrected)
 
 ## More Information
@@ -318,10 +318,10 @@ against the actual file's heading count).
 
 - [ ] **Step 3: Verify cited file paths and facts**
 
-Run: `ls blocks/stocastic/rtl/galois_lfsr.sv`
+Run: `ls blocks/stochastic/rtl/galois_lfsr.sv`
 Expected: path listed, no error.
 
-Run: `grep -c "corrected: was" blocks/stocastic/rtl/galois_lfsr.sv`
+Run: `grep -c "corrected: was" blocks/stochastic/rtl/galois_lfsr.sv`
 Expected: `0` (those comments were intentionally removed earlier this
 session — if this returns nonzero, the ADR's description of the table's
 current state doesn't match reality; re-check before committing).

@@ -130,9 +130,9 @@ purpose entirely.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/stochastic_adder.sv`
-- `blocks/stocastic/rtl/stochastic_adder_sync.sv`
-- `blocks/stocastic/verif/tb/test_stochastic_adder/test_stochastic_adder.py`
+- `blocks/stochastic/rtl/stochastic_adder.sv`
+- `blocks/stochastic/rtl/stochastic_adder_sync.sv`
+- `blocks/stochastic/verif/tb/test_stochastic_adder/test_stochastic_adder.py`
 - `pixi.toml`
 - `.githooks/pre-commit`
 

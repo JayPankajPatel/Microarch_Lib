@@ -104,13 +104,13 @@ variant's actual cell count rather than a fixed die size masking the
 difference.
 
 Design under test: a `WIDTH=64` instantiation of `galois_lfsr` (wrapped in
-`blocks/stocastic/pnr/lfsr64_wrapper.sv`), the width with the largest gap
+`blocks/stochastic/pnr/lfsr64_wrapper.sv`), the width with the largest gap
 between the two tables (dense mask `64'h268A2A32F60F159C`, ~30 set bits,
 vs. sparse mask `64'h4040000000000020`, 3 set bits). Confirmed via yosys
 synth `stat` before running PnR: 29 `$_XOR_` cells for the dense variant,
 3 for the sparse variant, matching the expected tap counts exactly.
 
-Post-route results (`blocks/stocastic/pnr/{dense,sparse}/runs/`,
+Post-route results (`blocks/stochastic/pnr/{dense,sparse}/runs/`,
 `final/metrics.json`):
 
 | Metric | Dense (29 taps) | Sparse (3 taps) | Delta |
@@ -137,12 +137,12 @@ this is an expected result, not a failed measurement.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/galois_lfsr.sv` (`TAPS_LUT` localparam: dense
+- `blocks/stochastic/rtl/galois_lfsr.sv` (`TAPS_LUT` localparam: dense
   table and `` `ifdef `` fork removed, sparse table is now the only one)
-- `blocks/stocastic/pnr/lfsr64_wrapper.sv` (new: fixed-`WIDTH=64` synthesis
+- `blocks/stochastic/pnr/lfsr64_wrapper.sv` (new: fixed-`WIDTH=64` synthesis
   harness used for this comparison; not library RTL, kept out of `rtl/`
   so the pre-commit lint hook glob doesn't pick it up)
-- `blocks/stocastic/pnr/dense/config.json`, `blocks/stocastic/pnr/sparse/config.json`
+- `blocks/stochastic/pnr/dense/config.json`, `blocks/stochastic/pnr/sparse/config.json`
   (new: the two LibreLane configs used for this comparison)
 - `.gitignore` (new entry: `blocks/*/pnr/*/runs/` -- LibreLane run
   artifacts are regenerable and were ~85MB per run)

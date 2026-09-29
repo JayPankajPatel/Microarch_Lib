@@ -16,7 +16,7 @@ sources:
       - common/rtl
     files:
       - blocks/basic/rtl/*.sv
-      - blocks/stocastic/pnr/*.sv
-      - blocks/stocastic/rtl/*.sv
+      - blocks/stochastic/pnr/*.sv
+      - blocks/stochastic/rtl/*.sv
 
 

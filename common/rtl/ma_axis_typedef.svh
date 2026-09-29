@@ -1,0 +1,7 @@
+`ifndef MA_AXIS_TYPEDEF_SV
+`define MA_AXIS_TYPEDEF_SV
+
+
+
+
+`endif // MA_AXIS_TYPEDEF_SV

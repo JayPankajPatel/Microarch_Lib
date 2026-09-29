@@ -8,7 +8,7 @@ date: 2026-08-16
 ## Context and Problem Statement
 
 Standing up a working SymbiYosys formal flow for `galois_lfsr.sv`
-(`blocks/stocastic/verif/formal/galois_lfsr.sby`) requires Yosys's native
+(`blocks/stochastic/verif/formal/galois_lfsr.sby`) requires Yosys's native
 Verilog/SystemVerilog frontend (`read_verilog -sv`) to parse the module --
 there is no Verific/Slang frontend available in this repo's pixi-managed
 toolchain, and Yosys's own docs describe frontend SV support as "only a
@@ -81,7 +81,7 @@ implicitly by being a plain array read).
 - `galois_lfsr.sv` now elaborates under `read_verilog -sv` (confirmed: 6
   cells for the `WIDTH=4` default -- 1 `$adff`, 4 `$mux`, 1 `$xor` -- with
   `CHECK` reporting 0 problems), unblocking
-  `blocks/stocastic/verif/formal/galois_lfsr.sby`.
+  `blocks/stochastic/verif/formal/galois_lfsr.sby`.
 - The table's per-width structure and inline "which taps" comments are
   unchanged in spirit -- same 65 entries, same comments, just `N: taps =
   VAL;` instead of `N: VAL,`.
@@ -97,7 +97,7 @@ implicitly by being a plain array read).
   65 entries (`w` = 0 through 64) with `!==`: `ALL 65 ENTRIES MATCH`, zero
   mismatches.
 - **Yosys elaboration**: `read_verilog -sv -Icommon/rtl
-  blocks/stocastic/rtl/galois_lfsr.sv; prep -top galois_lfsr` completes with
+  blocks/stochastic/rtl/galois_lfsr.sv; prep -top galois_lfsr` completes with
   `CHECK pass ... Found and reported 0 problems` (previously a hard parse
   error at the `TAPS_LUT` declaration line).
 - **Functional re-verification at `WIDTH=19`**, matching the standard ADR
@@ -107,14 +107,14 @@ implicitly by being a plain array read).
   repeat -- **524287** cycles, exactly `2^19 - 1`, matching ADR 0005's
   previously-confirmed result for the same width and seed.
 - Standard `pixi run verilator --lint-only -Wall -Icommon/rtl
-  blocks/stocastic/rtl/galois_lfsr.sv` produces only the two pre-existing
+  blocks/stochastic/rtl/galois_lfsr.sv` produces only the two pre-existing
   `GENUNNAMED` warnings from the unrelated `MA_ASSERT_INIT` generate blocks
   (confirmed identical before/after via `git stash`) -- no new warnings from
   this change.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/galois_lfsr.sv` (`TAPS_LUT` localparam array
+- `blocks/stochastic/rtl/galois_lfsr.sv` (`TAPS_LUT` localparam array
   replaced by `function automatic bit [63:0] taps(int n)`; new `tap_mask`
   localparam hoists the per-instance constant call result; tap-application
   loop reads `tap_mask[n-1-i]` instead of `TAPS_LUT[n][n-1-i]`)

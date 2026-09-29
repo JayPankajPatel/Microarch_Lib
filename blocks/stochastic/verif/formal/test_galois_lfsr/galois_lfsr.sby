@@ -17,5 +17,5 @@ w64: chparam -set WIDTH 64 -set INIT_SEED 1 galois_lfsr
 prep -top galois_lfsr
 
 [files]
-blocks/stocastic/rtl/galois_lfsr.sv
+blocks/stochastic/rtl/galois_lfsr.sv
 common/rtl common/rtl

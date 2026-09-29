@@ -7,7 +7,7 @@ date: 2026-08-16
 
 ## Context and Problem Statement
 
-`blocks/stocastic/verif/formal/galois_lfsr.sby` needed a way to express one
+`blocks/stochastic/verif/formal/galois_lfsr.sby` needed a way to express one
 formal property against `galois_lfsr`: `out` never becomes all-zero once
 reset deasserts (`no_lockup`), given `NoZeroSeed` guarantees a nonzero
 `INIT_SEED`. The initial approach was a separate checker module in
@@ -89,7 +89,7 @@ place.
   a separate `verif/formal/` file, inside `` `ifdef FORMAL ``, so it has zero
   effect on synthesis (`` `ifdef SYNTHESIS ``) or any tool that doesn't
   define `FORMAL` (plain simulation, lint).
-  `blocks/stocastic/verif/formal/galois_lfsr_bind.sv` was deleted -- it
+  `blocks/stochastic/verif/formal/galois_lfsr_bind.sv` was deleted -- it
   never actually checked anything, so keeping it around as source would be
   misleading.
 - Future formal properties on other blocks in this repo should follow the
@@ -128,7 +128,7 @@ place.
   both directions, confirming the checker is load-bearing rather than
   vacuous, and that this holds across widths, not just the one tested.
 - **`$check` cell presence**: `read_verilog -sv -formal -Icommon/rtl
-  blocks/stocastic/rtl/galois_lfsr.sv; prep -top galois_lfsr; stat` shows
+  blocks/stochastic/rtl/galois_lfsr.sv; prep -top galois_lfsr; stat` shows
   `1 $check` cell in the final design (it showed zero when the same
   assertion lived in a `bind`-ed module instead).
 - **`initial assume (!rst_n)` does not over-constrain past step 0**: the
@@ -146,14 +146,14 @@ place.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/galois_lfsr.sv` (new `` `ifdef FORMAL `` block:
+- `blocks/stochastic/rtl/galois_lfsr.sv` (new `` `ifdef FORMAL `` block:
   `initial assume (!rst_n);` and the `no_lockup` immediate assertion)
-- `blocks/stocastic/verif/formal/galois_lfsr.sby` (new: proper
+- `blocks/stochastic/verif/formal/galois_lfsr.sby` (new: proper
   `[tasks]`/`[options]`/`[engines]`/`[script]`/`[files]` SBY config,
   replacing a non-functional stub; `read_verilog -sv -formal`; three
   `chparam`-driven tasks -- `w4`, `w19`, `w64` -- so the proof covers more
   than one tap mask)
-- `blocks/stocastic/verif/formal/galois_lfsr_bind.sv` (deleted -- the
+- `blocks/stochastic/verif/formal/galois_lfsr_bind.sv` (deleted -- the
   non-functional `bind`-based checker)
 
 ## More Information

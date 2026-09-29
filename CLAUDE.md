@@ -39,19 +39,19 @@ blocks/<name>/
   docs/
     waveforms/           -- wavedrom JSON timing-diagram sources, plus their rendered .svg (both committed -- .svg regenerated via `pixi run render-waveform <path/to/diagram.json>` after editing the .json)
   verif/
-    formal/             -- SymbiYosys .sby files + bind checkers
-    sim/                -- testbenches
+    formal/             -- SymbiYosys .sby files (inline `ifdef FORMAL checkers, see ADR 0009)
+    tb/                 -- cocotb testbenches, one directory per test (test_<name>/)
 ```
 
 `common/` (sibling to `blocks/`, not nested inside it) holds cross-cutting infrastructure that every block depends on — currently just the elaboration-check macros.
 
 ### Elaboration-time parameter checks
 
-`common/rtl/ma_assert.svh` is a tool-dispatch header: it `` `include ``s either `ma_assert_std.svh` (real macro bodies) or `ma_assert_dummy.svh` (same macro names, no-op bodies) depending on `` `ifdef SYNTHESIS ``/`` `ifdef YOSYS ``. Every block that needs a parameter-range check (or similar) should `` `include "ma_assert.svh" `` and call `` `MA_ASSERT_ELABOR(name, condition) `` rather than hand-rolling an `if`/`$error`. See `blocks/stocastic/rtl/galois_lfsr.sv` for the reference usage, and `docs/adr/0001-elaboration-check-mechanism.md` for why this specific form was chosen over the alternatives (SVA, the `checker` construct, OpenTitan's `` `ASSERT_INIT `` pattern).
+`common/rtl/ma_assert.svh` is a tool-dispatch header: it `` `include ``s either `ma_assert_std.svh` (real macro bodies) or `ma_assert_dummy.svh` (same macro names, no-op bodies) depending on `` `ifdef SYNTHESIS ``/`` `ifdef YOSYS ``. Every block that needs a parameter-range check (or similar) should `` `include "ma_assert.svh" `` and call `` `MA_ASSERT_ELABOR(name, condition) `` rather than hand-rolling an `if`/`$error`. See `blocks/stochastic/rtl/galois_lfsr.sv` for the reference usage, and `docs/adr/0001-elaboration-check-mechanism.md` for why this specific form was chosen over the alternatives (SVA, the `checker` construct, OpenTitan's `` `ASSERT_INIT `` pattern).
 
 ### FSM-shaped RTL uses the Gaisler two-process style
 
-Any module with more than a couple of pieces of interacting registered state (i.e. it's naturally an FSM, not just a counter or a single-register datapath) must be written in the Gaisler two-process style, not as a single `always_ff` with several separately-declared registers conditionally assigned across nested branches: collect all registered state into one `r`/`rin` packed struct pair, compute `rin` entirely in one `always_comb` block that starts with `rin = r;` (hold everything) before conditionally overriding only the fields that change, and use a single `always_ff` block that does nothing but the reset assignment and `r <= rin;`. See `blocks/stocastic/rtl/binary_stochastic_converter.sv` for the reference usage, and `docs/adr/0007-gaisler-two-process-fsm-style.md` for the two concrete bugs (an output that silently held for only one cycle instead of the whole burst, and an unreachable termination condition) this convention exists to prevent. Don't apply this structure to modules that don't need it — `counter.sv` and `galois_lfsr.sv` are intentionally left as plain single-register `always_ff` blocks, since the struct/two-process split would add ceremony without a corresponding clarity gain there.
+Any module with more than a couple of pieces of interacting registered state (i.e. it's naturally an FSM, not just a counter or a single-register datapath) must be written in the Gaisler two-process style, not as a single `always_ff` with several separately-declared registers conditionally assigned across nested branches: collect all registered state into one `r`/`rin` packed struct pair, compute `rin` entirely in one `always_comb` block that starts with `rin = r;` (hold everything) before conditionally overriding only the fields that change, and use a single `always_ff` block that does nothing but the reset assignment and `r <= rin;`. See `blocks/stochastic/rtl/binary_stochastic_converter.sv` for the reference usage, and `docs/adr/0007-gaisler-two-process-fsm-style.md` for the two concrete bugs (an output that silently held for only one cycle instead of the whole burst, and an unreachable termination condition) this convention exists to prevent. Don't apply this structure to modules that don't need it — `counter.sv` and `galois_lfsr.sv` are intentionally left as plain single-register `always_ff` blocks, since the struct/two-process split would add ceremony without a corresponding clarity gain there.
 
 ### Design rationale lives in `docs/adr/`, not in commit messages or comments
 
@@ -60,3 +60,11 @@ Before assuming *why* a module is structured a certain way, check `docs/adr/READ
 When making a new non-obvious design decision, add an ADR (`docs/adr/NNNN-<slug>.md`, next sequential number, same template) rather than leaving the reasoning only in conversation history.
 
 **Before committing**, check the staged diff for exactly this: does it embody a decision someone would reasonably ask "why did you do it this way?" about (a chosen mechanism over rejected alternatives, a non-obvious tradeoff, a correctness methodology) — not just a bug fix or mechanical change? If so, write the ADR in the same commit (or the one right before it), not after. A decision made and committed without its ADR tends to never get one.
+
+## Before opening a PR or merging to `main`
+
+When the user asks to open a PR or merge, remind them of this checklist first, and don't treat it as done until each item is confirmed:
+
+1. **README "AI-Assisted Development" section**: every `<...>` placeholder is replaced with accurate details, and the `TODO(before PR/merge)` comment is removed.
+2. `pixi run lint-all`, `pixi run run-regression`, and `pixi run run-formal` all pass.
+3. Any ADR still marked `proposed` either has its Confirmation filled in with real evidence or intentionally stays proposed.
