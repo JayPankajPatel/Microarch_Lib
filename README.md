@@ -85,22 +85,21 @@ Other tasks: `lint-all`, `sweep-widths`, `render-waveform`, `setup-sby`. See `pi
 
 ## AI-Assisted Development
 
-<!-- TODO(before PR/merge): replace every <...> placeholder below with accurate
-     details, then delete this comment. -->
-
 This repo is developed with an AI-assisted workflow (Claude Code; project
 instructions in `CLAUDE.md`). AI is used for:
 
--  drafting documentation, ADRs, and helper scripts
--  code review and bug hunting
--  running and reporting verification across tools
+- drafting documentation, ADRs, and helper scripts
+- code review and bug hunting
+- running and reporting verification across tools
 
- RTL architecture and design decisions are my own 
- Every change is held to the same bar regardless of who drafted it
- - it must pass lint
- - the cocotb regression
- - formal proofs in CI
- - significant decisions are recorded as ADRs in `docs/adr/` with the evidence that confirmed them.
+RTL architecture and design decisions are my own.
+
+Every change is held to the same bar regardless of who drafted it:
+
+- it must pass lint
+- it must pass the cocotb regression
+- it must pass the formal proofs in CI
+- significant decisions are recorded as ADRs in `docs/adr/` with the evidence that confirmed them
 
 ## License
 
