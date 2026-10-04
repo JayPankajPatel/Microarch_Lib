@@ -63,7 +63,7 @@ The channel abstraction also makes supporting AXI and ACE protocols easier by al
   - The obvious one: this is much more up-front work than continuing as-is. Amortized over future blocks, the cost may or may not be negligible for my small personal projects.
   - **Not standardized**, because there is no real standard to do this, it might be harder to import or use with external dependencies. Mitigation: stay close to the de facto `pulp-platform/axi` `req_t`/`resp_t` convention.
   - Macros are harder to read and debug. Errors inside a macro expansion point at confusing line numbers, and you can't easily see the expanded code.
-  - Standalone lint breaks with logic default types. Linting a module on its own hits s_req_i.valid on a type with no fields, so every block needs a small lint or test top that expands the
+  - Standalone lint breaks with logic default types. Linting a module on its own hits s_req_i.tvalid on a type with no fields, so every block needs a small lint or test top that expands the
     macro.
   - Packed-struct width mismatches are legal SV. Connecting two struct types of different widths silently truncates, so critical connections need $bits elaboration checks.
   - IPI still needs a flat wrapper at the block-design boundary, though it's mechanical via an assign macro.
