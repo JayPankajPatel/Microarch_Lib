@@ -38,7 +38,7 @@ integration is happening. Structs are supported by every major simulation and sy
 - Vivado,
 - IPI via a mechanical wrapper,
 - Verilator,
-- Yosys, 
+- Yosys, via its built-in slang frontend (`read_slang`). The native `read_verilog -sv` frontend parses structs and packages but rejects `parameter type`; see [0024](0024-formal-frontend-read-slang.md).
 - cocotb
 
 The channel abstraction also makes supporting AXI and ACE protocols easier by allowing a composition design pattern to reuse our work. 
@@ -75,6 +75,17 @@ TODO: fill in after the `delay_fx` struct conversion. Required evidence: the
 converted module elaborates in Verilator, Vivado, and Yosys, and regression
 output matches the interface-based version cycle for cycle. Planned as a
 `pixi run check-tools` task.
+
+Partial (2026-10-04), toy design only -- the real `ma_axis_typedef.svh`, a
+package calling `` `MA_AXIS_ALL(audio, logic signed [15:0]) ``, and a leaf
+with `parameter type req_t/resp_t` overridden from a top:
+- Verilator 5.052 `--lint-only -Wall`: clean.
+- Yosys 0.67 native `read_verilog -sv`: parse error on `parameter type`
+  (`syntax error, unexpected TOK_ID`).
+- Yosys 0.67 `read_slang`: elaborates; under sby, false assertions inline,
+  in a checker submodule, as concurrent SVA, and via `bind` all FAIL with
+  real counterexamples. Details in [0024](0024-formal-frontend-read-slang.md).
+- Vivado and the `delay_fx` cycle-for-cycle comparison: not yet done.
 
 ## Affected Files
 

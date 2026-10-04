@@ -3,6 +3,11 @@ status: accepted
 date: 2026-08-16
 ---
 
+> **Superseded in part by [0024](0024-formal-frontend-read-slang.md)** (2026-10-04):
+> the formal flow is moving to `read_slang`, under which `bind` and concurrent
+> SVA both produce real, failing checks. The findings below remain accurate
+> for Yosys's native `read_verilog -sv` frontend.
+
 # 0009. The `galois_lfsr` `no_lockup` formal property is an inline `` `ifdef FORMAL `` assertion, not a `bind`-ed checker module
 
 ## Context and Problem Statement

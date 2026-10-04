@@ -39,7 +39,7 @@ blocks/<name>/
   docs/
     waveforms/           -- wavedrom JSON timing-diagram sources, plus their rendered .svg (both committed -- .svg regenerated via `pixi run render-waveform <path/to/diagram.json>` after editing the .json)
   verif/
-    formal/             -- SymbiYosys .sby files (inline `ifdef FORMAL checkers, see ADR 0009)
+    formal/             -- SymbiYosys .sby files (read_slang -D FORMAL, inline `ifdef FORMAL checkers; see ADR 0024, which supersedes 0009's native-frontend limits)
     tb/                 -- cocotb testbenches, one directory per test (test_<name>/)
 ```
 
