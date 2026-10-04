@@ -91,15 +91,16 @@ Other tasks: `lint-all`, `sweep-widths`, `render-waveform`, `setup-sby`. See `pi
 This repo is developed with an AI-assisted workflow (Claude Code; project
 instructions in `CLAUDE.md`). AI is used for:
 
-- <e.g. drafting documentation, ADRs, and helper scripts>
-- <e.g. code review and bug hunting>
-- <e.g. running and reporting verification across tools>
+-  drafting documentation, ADRs, and helper scripts
+-  code review and bug hunting
+-  running and reporting verification across tools
 
-<Which parts you design/write yourself, e.g. "RTL architecture and design
-decisions are my own">. Every change is held to the same bar regardless of
-who drafted it: it must pass lint, the cocotb regression, and formal proofs
-in CI, and significant decisions are recorded as ADRs in `docs/adr/` with the
-evidence that confirmed them.
+ RTL architecture and design decisions are my own 
+ Every change is held to the same bar regardless of who drafted it
+ - it must pass lint
+ - the cocotb regression
+ - formal proofs in CI
+ - significant decisions are recorded as ADRs in `docs/adr/` with the evidence that confirmed them.
 
 ## License
 
