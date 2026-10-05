@@ -1,0 +1,30 @@
+[tasks]
+prove
+cover
+
+[options]
+prove: mode prove
+prove: depth 20
+cover: mode cover
+cover: depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+# read_slang does not define FORMAL; -D FORMAL kept for consistency with
+# ADR 0024. The checker and bind file need no define -- they are
+# verification-only files (ADR 0025).
+read_slang -D FORMAL -Icommon/rtl axis_fifo.sv ma_axis_checker.sv axis_fifo_bind.sv --top axis_fifo
+prep -top axis_fifo
+select -assert-min 1 t:$check
+# A missing bind file is silent; these turn it into an ERROR (8 = 3 rules +
+# 5 covers per checker instance). See ADR 0025.
+select -assert-count 8 t:$check */u_s_axis_chk.* %i
+select -assert-count 8 t:$check */u_m_axis_chk.* %i
+
+[files]
+blocks/basic/rtl/axis_fifo.sv
+common/verif/sva/ma_axis_checker.sv
+blocks/basic/verif/formal/test_axis_fifo/axis_fifo_bind.sv
+common/rtl common/rtl

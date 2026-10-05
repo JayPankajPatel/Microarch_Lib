@@ -107,8 +107,8 @@ seed) recorded here for reference but not adopted as if it were a fix.
 
 ## Affected Files
 
-- `blocks/stocastic/verif/tb/test_b_mult_s_integration/top.sv`
-- `blocks/stocastic/verif/tb/test_b_add_s_integration/top.sv`
+- `blocks/stochastic/verif/tb/test_b_mult_s_integration/top.sv`
+- `blocks/stochastic/verif/tb/test_b_add_s_integration/top.sv`
 
 ## More Information
 

@@ -1,0 +1,26 @@
+[tasks]
+w4
+w16
+w64
+
+[options]
+mode prove
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+# read_slang elaborates at read time: parameters go on the read line (-G),
+# chparam errors afterwards. read_slang does not define FORMAL (it defines
+# SYNTHESIS), so -D FORMAL is required; the select guard turns a missing
+# define into an ERROR instead of a hollow PASS. See ADR 0024.
+w4: read_slang -D FORMAL -Icommon/rtl galois_lfsr.sv --top galois_lfsr
+w16: read_slang -D FORMAL -Icommon/rtl galois_lfsr.sv --top galois_lfsr -G WIDTH=16 -G INIT_SEED=69
+w64: read_slang -D FORMAL -Icommon/rtl galois_lfsr.sv --top galois_lfsr -G WIDTH=64 -G INIT_SEED=1
+prep -top galois_lfsr
+select -assert-min 1 t:$check
+
+[files]
+blocks/stochastic/rtl/galois_lfsr.sv
+common/rtl common/rtl

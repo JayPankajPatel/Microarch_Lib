@@ -8,13 +8,13 @@
 set top_module [lindex $argv 0]
 set out_dir    [lindex $argv 1]
 set repo_root  [file normalize [file join [file dirname [info script]] .. .. .. ..]]
-set fpga_dir   [file join $repo_root blocks stocastic fpga]
+set fpga_dir   [file join $repo_root blocks stochastic fpga]
 
 file mkdir $out_dir
 
 create_project -force sc_fpga_build $out_dir/proj -part xc7z010clg400-1
 
-# RTL sources: shared macros, shared basic blocks, the stocastic block set,
+# RTL sources: shared macros, shared basic blocks, the stochastic block set,
 # and this directory's two top-level wrappers -- referenced directly from
 # their existing locations rather than duplicated, so this build always
 # tracks the same verified sources the cocotb test suite runs against.
@@ -23,10 +23,10 @@ add_files -norecurse [list \
     $repo_root/common/rtl/ma_assert_std.svh \
     $repo_root/common/rtl/ma_assert_dummy.svh \
     $repo_root/blocks/basic/counter.sv \
-    $repo_root/blocks/stocastic/rtl/galois_lfsr.sv \
-    $repo_root/blocks/stocastic/rtl/binary_stochastic_converter.sv \
-    $repo_root/blocks/stocastic/rtl/stochastic_binary_converter.sv \
-    $repo_root/blocks/stocastic/rtl/stochastic_multipler.sv \
+    $repo_root/blocks/stochastic/rtl/galois_lfsr.sv \
+    $repo_root/blocks/stochastic/rtl/binary_stochastic_converter.sv \
+    $repo_root/blocks/stochastic/rtl/stochastic_binary_converter.sv \
+    $repo_root/blocks/stochastic/rtl/stochastic_multiplier.sv \
     $fpga_dir/rtl/sc_multiply_top.sv \
     $fpga_dir/rtl/binary_multiply_top.sv \
 ]

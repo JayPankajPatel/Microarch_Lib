@@ -65,9 +65,9 @@ By contrast, linting the `.sv` file that actually `` `include ``s the
 header exercises the macro-expanded content for real:
 
 ```
-$ verilator --lint-only -Wall -Icommon/rtl blocks/stocastic/rtl/galois_lfsr.sv
-%Warning-GENUNNAMED: blocks/stocastic/rtl/galois_lfsr.sv:14:5: Unnamed generate block 'genblk1' ...
-    $error("%s:%0d: [%s] check failed", "blocks/stocastic/rtl/galois_lfsr.sv", 14, "ValidLFSRSizeCheck");
+$ verilator --lint-only -Wall -Icommon/rtl blocks/stochastic/rtl/galois_lfsr.sv
+%Warning-GENUNNAMED: blocks/stochastic/rtl/galois_lfsr.sv:14:5: Unnamed generate block 'genblk1' ...
+    $error("%s:%0d: [%s] check failed", "blocks/stochastic/rtl/galois_lfsr.sv", 14, "ValidLFSRSizeCheck");
 %Error: Exiting due to 1 warning(s)
 ```
 
@@ -110,7 +110,7 @@ Verified empirically by running `verilator --lint-only` (pixi-installed,
 version 5.050) directly, exactly as shown above: standalone `.svh` lint
 fails with "No top level module found" for all three headers
 (`ma_assert.svh`, `ma_assert_std.svh`, `ma_assert_dummy.svh`); linting
-`blocks/stocastic/rtl/galois_lfsr.sv` (the hook's actual current scope)
+`blocks/stochastic/rtl/galois_lfsr.sv` (the hook's actual current scope)
 does reach and type-check the macro-expanded header content, evidenced by
 a warning whose reported line/text comes directly from inside the macro
 expansion.
@@ -121,7 +121,7 @@ expansion.
 - `common/rtl/ma_assert.svh`
 - `common/rtl/ma_assert_std.svh`
 - `common/rtl/ma_assert_dummy.svh`
-- `blocks/stocastic/rtl/galois_lfsr.sv` (the `.sv` file that currently
+- `blocks/stochastic/rtl/galois_lfsr.sv` (the `.sv` file that currently
   provides transitive coverage of `ma_assert_std.svh`)
 
 ## More Information

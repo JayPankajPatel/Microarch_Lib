@@ -91,7 +91,7 @@ correct and adds no unnecessary state or dependency.
 
 ### Confirmation
 
-`blocks/stocastic/verif/tb/test_stochastic_multiplier/test_stochastic_multiplier.py`,
+`blocks/stochastic/verif/tb/test_stochastic_multiplier/test_stochastic_multiplier.py`,
 4/4 passing (`pixi run -e default make` from that directory):
 
 - `basic_both_ready_every_cycle` -- both producers and the consumer ready
@@ -114,9 +114,9 @@ correct and adds no unnecessary state or dependency.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/stochastic_multipler.sv`
-- `blocks/stocastic/verif/tb/test_stochastic_multiplier/test_stochastic_multiplier.py`
-- `blocks/stocastic/verif/tb/test_stochastic_multiplier/Makefile`
+- `blocks/stochastic/rtl/stochastic_multiplier.sv`
+- `blocks/stochastic/verif/tb/test_stochastic_multiplier/test_stochastic_multiplier.py`
+- `blocks/stochastic/verif/tb/test_stochastic_multiplier/Makefile`
 
 ## More Information
 

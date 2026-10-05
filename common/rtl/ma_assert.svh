@@ -1,8 +1,8 @@
 // Elaboration-time check macro dispatch. Include this before using
 // `MA_ASSERT_ELABOR in any RTL file.
 
-`ifndef MA_ASSERT_SV
-`define MA_ASSERT_SV
+`ifndef MA_ASSERT_SVH
+`define MA_ASSERT_SVH
 
 // Converts an arbitrary token into a Verilog string literal.
 `define MA_STRINGIFY(__x) `"__x`"
@@ -22,4 +22,4 @@
  `include "ma_assert_std.svh"
 `endif
 
-`endif // MA_ASSERT_SV
+`endif // MA_ASSERT_SVH

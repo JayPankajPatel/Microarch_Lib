@@ -1,11 +1,5 @@
 `include "ma_assert.svh"
-// Synchronous-reset variant of galois_lfsr.sv, for targets whose flip-flop
-// primitive has no async reset input (e.g. FABulous fabric BELs -- see
-// docs/adr/0020 and ~/wiki/fpga_stochastic_blocks/reusable_lessons/
-// fabric-ff-primitive-sync-reset-only.md). Identical logic; the only
-// change is the always_ff sensitivity list. Kept as a parallel file, not a
-// replacement: galois_lfsr.sv stays the verified async-reset default.
-module galois_lfsr_sync #(
+module galois_lfsr #(
     parameter int WIDTH = 4,
     parameter bit [WIDTH-1:0] INIT_SEED = WIDTH'(1)
 ) (
@@ -117,7 +111,7 @@ module galois_lfsr_sync #(
   logic [n-1:0] q;
   logic feedback;
   assign feedback = q[n-1];
-  always_ff @(posedge clk) begin
+  always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       q <= INIT_SEED;
     end else if (en) begin
@@ -137,25 +131,24 @@ module galois_lfsr_sync #(
   assign out = q;
 
 `ifdef FORMAL
-  // Formal-only: `bind`ing a separate checker module parses fine under
-  // Yosys's native frontend but the bound instance is silently dropped
-  // during `prep -top` hierarchy elaboration (confirmed empirically: no
-  // `$check`/`$assert` cell appears in `stat` output, so the property is
-  // never actually checked). An inline assertion, guarded by `` `ifdef
-  // FORMAL `` the same way `` `ifdef SYNTHESIS ``/`` `YOSYS `` guard
-  // MA_ASSERT_ELABOR above, does survive elaboration. See
-  // docs/adr/0009-formal-checker-inline-not-bind.md.
+  // Formal-only, read via Yosys's slang frontend (read_slang -D FORMAL).
+  // See docs/adr/0024-formal-frontend-read-slang.md (supersedes the
+  // native-frontend constraints in ADR 0009).
   //
   // Without constraining the initial state, the BMC base case can start
   // from an arbitrary (unconstrained) q, including q == '0, which trivially
   // violates no_lockup with no real counterexample behind it -- forcing
   // rst_n low at the trace's first step drives q to INIT_SEED before the
   // property is ever checked, matching how this module is actually used.
-  initial assume (!rst_n);
+  // f_past_valid is 0 only on the first step; slang rejects the older
+  // `initial assume (!rst_n)` form (ADR 0024).
+  logic f_past_valid = 1'b0;
+  always @(posedge clk) f_past_valid <= 1'b1;
+  always @(posedge clk) if (!f_past_valid) assume (!rst_n);
   always @(posedge clk)
     if (rst_n) begin
       no_lockup : assert (out != '0);
     end
 `endif
 
-endmodule : galois_lfsr_sync
+endmodule : galois_lfsr

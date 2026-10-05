@@ -140,10 +140,10 @@ this new input.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/stochastic_binary_converter.sv`
-- `blocks/stocastic/verif/tb/test_stochastic_to_binary/test_stochastic_to_binary.py`
-- `blocks/stocastic/verif/tb/test_loopback_stochastic/loopback_top.sv`
-- `blocks/stocastic/verif/tb/test_b_mult_s_integration/` (new)
+- `blocks/stochastic/rtl/stochastic_binary_converter.sv`
+- `blocks/stochastic/verif/tb/test_stochastic_to_binary/test_stochastic_to_binary.py`
+- `blocks/stochastic/verif/tb/test_loopback_stochastic/loopback_top.sv`
+- `blocks/stochastic/verif/tb/test_b_mult_s_integration/` (new)
 
 ## More Information
 

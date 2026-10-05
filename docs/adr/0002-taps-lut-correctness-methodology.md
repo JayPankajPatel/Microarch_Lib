@@ -96,7 +96,7 @@ before repeating — including a full 524,287-state run at `WIDTH=19`.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/galois_lfsr.sv` (`TAPS_LUT` localparam, 28 of 65
+- `blocks/stochastic/rtl/galois_lfsr.sv` (`TAPS_LUT` localparam, 28 of 65
   entries corrected)
 
 ## More Information

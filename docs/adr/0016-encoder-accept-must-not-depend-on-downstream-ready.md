@@ -114,8 +114,8 @@ bit gets consumed, never whether a new burst is allowed to begin.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/binary_stochastic_converter.sv`
-- `blocks/stocastic/verif/tb/test_b_mult_s_integration/` (new)
+- `blocks/stochastic/rtl/binary_stochastic_converter.sv`
+- `blocks/stochastic/verif/tb/test_b_mult_s_integration/` (new)
 
 ## More Information
 

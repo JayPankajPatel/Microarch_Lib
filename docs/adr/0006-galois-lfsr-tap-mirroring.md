@@ -191,17 +191,17 @@ passed bit-exact from cycle 0 through cycle 199, this is empirical
 evidence there is no such skew, without needing a dedicated test for it.
 
 **Lint.** `pixi run verilator --lint-only -Wall -Icommon/rtl
-blocks/stocastic/rtl/galois_lfsr.sv` produces only the pre-existing,
+blocks/stochastic/rtl/galois_lfsr.sv` produces only the pre-existing,
 already-documented (ADR 0004) `GENUNNAMED` warnings from ``
 `MA_ASSERT_INIT ``'s conditional-generate expansion -- no new warnings
 from this change.
 
 ## Affected Files
 
-- `blocks/stocastic/rtl/galois_lfsr.sv` (feedback/next-state recurrence
+- `blocks/stochastic/rtl/galois_lfsr.sv` (feedback/next-state recurrence
   rewritten to real Galois topology; `TAPS_LUT` values unchanged, only
   the read-index expression)
-- `blocks/stocastic/verif/tb/test_galois_lfsr/test_galois_lfsr.py`
+- `blocks/stochastic/verif/tb/test_galois_lfsr/test_galois_lfsr.py`
   (`state_to_int`/`initstate` construction reversed to match; added
   `reaches_maximal_length_cycle` as a complementary check --
   maximal-length alone can't prove the *intended* polynomial is wired

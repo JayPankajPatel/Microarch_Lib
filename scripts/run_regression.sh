@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Run every cocotb testbench in the repo (blocks/*/verif/tb/*/Makefile) once
-# each at its default (Makefile-declared) parameters, and report a pass/fail
-# summary across all of them.
+# each at its default (Makefile-declared) parameters, plus the pure-Python
+# unit tests for the shared verification helpers (common/verif/tests), and
+# report a pass/fail summary across all of them.
 #
 # Usage:
 #   scripts/run_regression.sh
@@ -46,6 +47,16 @@ for tb_dir in "${tb_dirs[@]}"; do
   rm -rf "$tb_dir/sim_build" "$tb_dir/__pycache__" "$tb_dir/results.xml" "$tb_dir/dump.vcd"
   echo
 done
+
+echo "=== common/verif/tests (pytest) ==="
+set +e
+out=$(PYTHONPATH="$repo_root/common/verif" pytest -q common/verif/tests 2>&1)
+status=$?
+set -e
+echo "$out" | tail -1
+[[ "$status" -ne 0 ]] && overall_status=1
+results+=("common/verif/tests (pytest): $(echo "$out" | tail -1)")
+echo
 
 echo "=== regression summary ==="
 for line in "${results[@]}"; do

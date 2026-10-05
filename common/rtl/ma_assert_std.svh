@@ -8,17 +8,4 @@
   if (!(__prop)) \
     $fatal("%s:%0d: [%s] check failed", `__FILE__, `__LINE__, `MA_STRINGIFY(__name));
 
-`define MA_ASSUME_SVA(name, expr, clock, reset) \
-name: assume property ( \
-    @(posedge clock) disable iff (reset) (expr) \
-);
-
-`define MA_ASSERT_SVA(name, expr, clock, reset) \
-name: assert property ( \
-    @(posedge clock) disable iff (reset) (expr) \
-);
-
-`define MA_COVER_SVA(name, expr, clock, reset) \
-name: cover property ( \
-    @(posedge clock) disable iff (reset) (expr) \
-);
+// The concurrent `MA_*_SVA wrappers live in ma_sva.svh (docs/adr/0025).

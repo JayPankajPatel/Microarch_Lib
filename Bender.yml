@@ -16,7 +16,17 @@ sources:
       - common/rtl
     files:
       - blocks/basic/rtl/*.sv
-      - blocks/stocastic/pnr/*.sv
-      - blocks/stocastic/rtl/*.sv
+      - blocks/stochastic/pnr/*.sv
+      - blocks/stochastic/rtl/*.sv
 
 
+
+  # Verification-only sources (ADR 0025): reusable checkers and per-block bind
+  # files. Gated behind the `formal` target so they never appear in the
+  # default (synthesis) file list; select with `bender ... -t formal`.
+  - target: formal
+    include_dirs:
+      - common/rtl
+    files:
+      - common/verif/sva/*.sv
+      - blocks/*/verif/formal/*/*_bind.sv

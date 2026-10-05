@@ -7,7 +7,7 @@ date: 2026-09-07
 
 ## Context and Problem Statement
 
-An independent audit of the whole `blocks/stocastic` library (requested after
+An independent audit of the whole `blocks/stochastic` library (requested after
 this session's earlier remediation of `stochastic_decorrelator.sv` — see the
 decorrelator's own reworked test suite and design — for the same kind of
 scrutiny across the rest of the library) found two defects in modules that
@@ -281,15 +281,15 @@ site touching this pattern.
 
 - `blocks/basic/counter.sv`
 - `blocks/basic/counter_sync.sv`
-- `blocks/stocastic/rtl/binary_stochastic_converter.sv`
-- `blocks/stocastic/rtl/binary_stochastic_converter_sync.sv`
-- `blocks/stocastic/rtl/stochastic_binary_converter.sv`
-- `blocks/stocastic/rtl/stochastic_binary_converter_sync.sv`
-- `blocks/stocastic/verif/tb/test_binary_to_stochastic/test_binary_stochastic.py`
-- `blocks/stocastic/verif/tb/test_stochastic_to_binary/test_stochastic_to_binary.py`
-- `blocks/stocastic/verif/tb/test_loopback_stochastic/test_loopback_stochastic.py`
-- `blocks/stocastic/verif/tb/test_b_add_s_integration/test_b_add_s_integration.py`
-- `blocks/stocastic/verif/tb/test_b_mult_s_integration/test_b_mult_s_integration.py`
+- `blocks/stochastic/rtl/binary_stochastic_converter.sv`
+- `blocks/stochastic/rtl/binary_stochastic_converter_sync.sv`
+- `blocks/stochastic/rtl/stochastic_binary_converter.sv`
+- `blocks/stochastic/rtl/stochastic_binary_converter_sync.sv`
+- `blocks/stochastic/verif/tb/test_binary_to_stochastic/test_binary_stochastic.py`
+- `blocks/stochastic/verif/tb/test_stochastic_to_binary/test_stochastic_to_binary.py`
+- `blocks/stochastic/verif/tb/test_loopback_stochastic/test_loopback_stochastic.py`
+- `blocks/stochastic/verif/tb/test_b_add_s_integration/test_b_add_s_integration.py`
+- `blocks/stochastic/verif/tb/test_b_mult_s_integration/test_b_mult_s_integration.py`
 
 ## More Information
 

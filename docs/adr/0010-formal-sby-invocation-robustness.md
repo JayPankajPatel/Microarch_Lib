@@ -11,7 +11,7 @@ SymbiYosys resolves relative paths in a `.sby` file's `[files]` section
 against the **process's current working directory at invocation time**, not
 against the `.sby` file's own location. The first working version of
 `galois_lfsr.sby` used paths hand-counted relative to
-`blocks/stocastic/verif/formal/` (e.g. `../../rtl/galois_lfsr.sv`,
+`blocks/stochastic/verif/formal/` (e.g. `../../rtl/galois_lfsr.sv`,
 `../../../../common/rtl/ma_assert.svh`), which only resolves correctly if
 `sby` happens to be invoked from exactly that directory.
 
@@ -88,11 +88,11 @@ checked-in file would break on every other clone/machine.
 `bender script flist-plus --relative-path`, run from both the repo root and
 a nested subdirectory, was confirmed to produce the identical
 repo-root-relative output in both cases (`+incdir+common/rtl`,
-`blocks/stocastic/rtl/galois_lfsr.sv`, etc.) -- it doesn't need special
+`blocks/stochastic/rtl/galois_lfsr.sv`, etc.) -- it doesn't need special
 invocation-directory handling itself, because it resolves against
 `Bender.yml`'s location, not the caller's cwd. `galois_lfsr.sby`'s
 `[files]` section adopts that same repo-root anchor
-(`blocks/stocastic/rtl/galois_lfsr.sv`, `common/rtl/ma_assert.svh`, etc.,
+(`blocks/stochastic/rtl/galois_lfsr.sv`, `common/rtl/ma_assert.svh`, etc.,
 no `../` climbing at all), and the new `pixi run formal` task guarantees
 `sby` is always actually invoked from that anchor point, regardless of
 where the user's shell currently is -- by resolving the given `.sby` path
@@ -154,7 +154,7 @@ risk bender is used elsewhere in this repo to avoid: any header added to
 
 ### Confirmation
 
-- Ran `pixi run formal blocks/stocastic/verif/formal/test_galois_lfsr/galois_lfsr.sby`
+- Ran `pixi run formal blocks/stochastic/verif/formal/test_galois_lfsr/galois_lfsr.sby`
   from the repo root: all three tasks (`w4`, `w19`, `w64`) report
   `DONE (PASS, rc=0)`, with generated output under
   `build/formal/galois_lfsr_{w4,w19,w64}/`.
@@ -170,7 +170,7 @@ risk bender is used elsewhere in this repo to avoid: any header added to
 
 ## Affected Files
 
-- `blocks/stocastic/verif/formal/test_galois_lfsr/galois_lfsr.sby`
+- `blocks/stochastic/verif/formal/test_galois_lfsr/galois_lfsr.sby`
   (`[files]` section changed from `verif/formal/`-relative `../` paths to
   repo-root-relative paths; moved into the per-module
   `verif/formal/test_galois_lfsr/` directory)
