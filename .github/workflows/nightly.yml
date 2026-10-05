@@ -40,6 +40,9 @@ jobs:
       - name: Lint
         run: pixi run lint-all
 
+      - name: Python lint (ruff + ty)
+        run: pixi run lint-py
+
       - name: cocotb regression
         run: pixi run run-regression
 

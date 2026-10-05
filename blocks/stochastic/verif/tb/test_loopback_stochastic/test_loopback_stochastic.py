@@ -2,6 +2,7 @@ import random
 
 import cocotb
 from cocotb.triggers import RisingEdge
+
 from ma_clkrst import reset_dut, start_clock
 
 # Integration/loopback test for GitHub issue #2: binary_stochastic_converter
@@ -75,7 +76,10 @@ async def single_window_binary_out_matches_actual_transferred_bits(dut):
         # first sample, not one belonging to this window.
         if dut.valid_binary_out.value == 1:
             break
-        if dut.valid_stochastic_link.value == 1 and dut.ready_stochastic_link.value == 1:
+        if (
+            dut.valid_stochastic_link.value == 1
+            and dut.ready_stochastic_link.value == 1
+        ):
             tape.append((int(dut.stochastic_link.value), 0))
     else:
         raise AssertionError("decoder never completed a window")
@@ -189,7 +193,10 @@ async def back_to_back_bursts_stay_aligned_under_tight_backpressure_coupling(dut
             not windows or windows[-1][1] != len(tape)
         ):
             windows.append((int(dut.binary_out.value), len(tape)))
-        if dut.valid_stochastic_link.value == 1 and dut.ready_stochastic_link.value == 1:
+        if (
+            dut.valid_stochastic_link.value == 1
+            and dut.ready_stochastic_link.value == 1
+        ):
             tape.append((int(dut.stochastic_link.value), burst_ordinal))
 
     assert len(windows) >= 6, (

@@ -1,7 +1,8 @@
 import cocotb
 from cocotb.triggers import RisingEdge
-from ma_clkrst import reset_dut, start_clock
 from pylfsr import LFSR
+
+from ma_clkrst import reset_dut, start_clock
 
 # interface
 # module galois_lfsr #(

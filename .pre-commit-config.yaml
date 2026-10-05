@@ -1,0 +1,24 @@
+# Python-only pre-commit hooks (docs/adr/0026). Hooks are `local` and run the
+# ruff/ty pinned in pixi.lock via `pixi run`, so pre-commit never downloads its
+# own tool copies. RTL lint is deliberately NOT a hook (a broken Bender
+# manifest must not block unrelated commits) -- run `pixi run lint-all`.
+#
+# Install once per clone:  pixi run setup-hooks
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check (fix)
+        entry: pixi run ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: pixi run ruff format
+        language: system
+        types: [python]
+      - id: ty
+        name: ty check
+        entry: pixi run ty check
+        language: system
+        types: [python]

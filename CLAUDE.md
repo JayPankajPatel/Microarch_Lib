@@ -23,9 +23,14 @@ Supported platforms are `linux-64` and `osx-64` only — Yosys's conda-forge fee
 pixi run verilator --lint-only -Wall -Icommon/rtl blocks/<name>/rtl/<file>.sv
 ```
 
-Run lint explicitly when it is useful; this repository intentionally has no
+Run RTL lint explicitly when it is useful; RTL lint is intentionally not a
 pre-commit hook, so a broken or incomplete project-wide source manifest cannot
 block unrelated commits.
+
+Python verification code has pre-commit hooks (ruff check/format and ty, run
+from the pixi lockfile; ADR 0026). Install once per clone with
+`pixi run setup-hooks`. `pixi run lint-py` checks, `pixi run fix-py` auto-fixes
+lint and formatting (ty errors must be fixed by hand).
 
 ## Architecture
 

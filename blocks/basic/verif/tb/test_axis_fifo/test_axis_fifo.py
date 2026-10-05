@@ -8,8 +8,9 @@ because this introductory FIFO intentionally has no TLAST port yet.
 import itertools
 
 import cocotb
-from axis_tb import AxisTB
 from cocotbext.axi import AxiStreamFrame
+
+from axis_tb import AxisTB
 
 
 class TB(AxisTB):
@@ -20,9 +21,9 @@ class TB(AxisTB):
             reset_active_level=True,
         )
 
-    async def reset(self):
+    async def reset(self, cycles: int = 2) -> None:
         self.start_clock()
-        await super().reset()
+        await super().reset(cycles)
 
     async def send_bytes(self, values):
         for value in values:
