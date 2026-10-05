@@ -70,9 +70,6 @@ flip-flops without an async reset input (see [ADR 0020](docs/adr/0020-synchronou
 
 ```sh
 scripts/setup.sh              # install dependencies
-pixi run setup-hooks          # once per clone: Python pre-commit hooks
-pixi run run-regression       # run every cocotb testbench + helper unit tests
-pixi run run-formal           # run every SymbiYosys proof
 ```
 
 All tasks (`pixi task list` prints these descriptions from `pixi.toml`):
