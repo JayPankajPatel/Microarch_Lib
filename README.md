@@ -83,6 +83,17 @@ Other tasks: `lint-all`, `sweep-widths`, `render-waveform`, `setup-sby`. See `pi
 - Toolchain: [pixi](https://pixi.prefix.dev/latest/) (Verilator, Yosys, SymbiYosys, z3, cocotb)
 - RTL manifest: [Bender](https://github.com/pulp-platform/bender)
 
+## Verification IP
+
+`common/verif/sva/ma_axis_checker.sv` is the library's own AXI4-Stream protocol
+checker (assertions and handshake covers), written from the AXI-Stream
+specification (Arm IHI 0051B) and cross-referenced to the rule names in ARM's
+public assertions user guide (ARM DUI 0534B, Table 4-10). It runs in the
+open-source formal flow (Yosys `read_slang` + SymbiYosys) and attaches to a
+block with `bind` from that block's `verif/formal/` directory, so design RTL
+contains no verification code. See `blocks/basic/verif/formal/test_axis_fifo/`
+for an example and `docs/adr/0025` for the design.
+
 ## AI-Assisted Development
 
 This repo is developed with an AI-assisted workflow (Claude Code; project

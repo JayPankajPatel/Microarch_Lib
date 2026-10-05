@@ -3,6 +3,11 @@ status: Accepted
 date: 2026-08-26
 ---
 
+> **Superseded in part by [0025](0025-assertions-outside-rtl-sva-header-and-bind.md)** (2026-10-04):
+> the `_SVA` macros are undefined in every Yosys formal flow under the dispatch
+> described below, and are moving to their own always-defined header. The
+> `MA_<KIND>_ELABOR`/`MA_<KIND>_SVA` naming convention stands.
+
 # 0011. Verification macros are named `MA_<KIND>_ELABOR`/`MA_<KIND>_SVA`, not left unprefixed or named after their OpenTitan ancestor
 
 ## Context and Problem Statement

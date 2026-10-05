@@ -39,11 +39,15 @@ blocks/<name>/
   docs/
     waveforms/           -- wavedrom JSON timing-diagram sources, plus their rendered .svg (both committed -- .svg regenerated via `pixi run render-waveform <path/to/diagram.json>` after editing the .json)
   verif/
-    formal/             -- SymbiYosys .sby files (read_slang -D FORMAL, inline `ifdef FORMAL checkers; see ADR 0024, which supersedes 0009's native-frontend limits)
+    formal/             -- one test_<name>/ dir per proof: a .sby (read_slang -D FORMAL, ADR 0024) plus, for blocks using reusable checkers, a <name>_bind.sv that binds common/verif/sva/ checkers and the reset-at-step-0 assume (ADR 0025)
     tb/                 -- cocotb testbenches, one directory per test (test_<name>/)
 ```
 
-`common/` (sibling to `blocks/`, not nested inside it) holds cross-cutting infrastructure that every block depends on — currently just the elaboration-check macros.
+`common/` (sibling to `blocks/`, not nested inside it) holds cross-cutting infrastructure: `common/rtl/` has the elaboration-check macros (`ma_assert*.svh`), the AXI-Stream struct typedef macros (`ma_axis_typedef.svh`, ADR 0023) and the concurrent SVA wrappers (`ma_sva.svh`, ADR 0025); `common/verif/sva/` has reusable protocol checkers (e.g. `ma_axis_checker.sv`); `common/verif/*.py` has shared cocotb helpers.
+
+### Formal properties live outside the RTL
+
+Design RTL contains no verification code. Reusable/protocol checkers live in `common/verif/sva/` and attach to a block via `bind` from `blocks/<name>/verif/formal/test_<name>/<name>_bind.sv`; those files are only in the Bender `formal` target, never in the synthesis file list. Each `.sby` keeps `select -assert-min 1 t:$check` plus a per-instance `select -assert-count N t:$check */u_<port>_chk.* %i` guard, because a missing bind file is otherwise silent. Yosys's slang frontend lowers only boolean property bodies plus `$past` -- no `|->`, `|=>`, `##N`, sequences or `$stable` -- so write each rule as "if X last cycle then Y now" with `$past(rst_n && X)` (the `rst_n` mirrors `disable iff`). Designer assertions about a block's own internals (e.g. `galois_lfsr`'s `no_lockup`) may stay inline under `` `ifdef FORMAL ``. See `docs/adr/0025-assertions-outside-rtl-sva-header-and-bind.md`.
 
 ### Elaboration-time parameter checks
 

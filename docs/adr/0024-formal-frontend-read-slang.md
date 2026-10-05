@@ -3,6 +3,17 @@ status: accepted
 date: 2026-10-04
 ---
 
+> **Correction (2026-10-04, found while building the ADR 0025 checker):**
+> "concurrent SVA works under slang" below holds only for **boolean property
+> bodies** -- that is all the toy `sva_bad` case exercised. Yosys 0.67's
+> slang frontend rejects `|->`, `|=>`, `##N` and sequences ("encountered
+> unsupported SVA feature") and `$stable` ("unsupported system task");
+> `$past` is supported. Properties must be written as boolean expressions
+> over `$past`; see ADR 0025 for the translation rules. The `bind` finding
+> and everything else in this record are unaffected. An earlier probe that
+> appeared to accept these constructs ran Yosys with `-q`, which hid the
+> errors.
+
 # 0024. Formal flow reads RTL through Yosys's built-in slang frontend (`read_slang -D FORMAL`), not the native `read_verilog -sv -formal`
 
 ## Context and Problem Statement
