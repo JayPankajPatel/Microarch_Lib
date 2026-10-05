@@ -6,16 +6,18 @@ platforms = ["linux-64"]
 version = "0.1.0"
 
 [tasks]
-setup-sby = "rm -rf /tmp/sby-src-microarch && git clone --depth 1 https://github.com/YosysHQ/sby /tmp/sby-src-microarch && make -C /tmp/sby-src-microarch install PREFIX=$CONDA_PREFIX && rm -rf /tmp/sby-src-microarch"
-setup-bender="curl --proto '=https' --tlsv1.2 https://pulp-platform.github.io/bender/init -sSf | sh"
-lint = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && MOD=$(grep -oP \"(?<=^module )\\w+\" \"$1\" | head -1) && exec verilator --lint-only -Wall -Wno-GENUNNAMED -Wno-DECLFILENAME $INCDIRS $SOURCES --top-module \"$MOD\"' _"
-lint-all = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && exec verilator --lint-only -Wall -Wno-GENUNNAMED -Wno-DECLFILENAME -Wno-MULTITOP $INCDIRS $SOURCES \"$@\"' _"
-sweep-widths = "bash -c 'cd \"$INIT_CWD\" && exec \"$PIXI_PROJECT_ROOT/scripts/sweep_widths.sh\" \"$@\"' _"
-run-regression = "bash -c 'exec \"$PIXI_PROJECT_ROOT/scripts/run_regression.sh\"'"
-run-formal = "bash -c 'exec \"$PIXI_PROJECT_ROOT/scripts/run_formal.sh\"'"
-render-waveform = "bash -c 'cd \"$INIT_CWD\" && exec \"$PIXI_PROJECT_ROOT/scripts/render_waveform.sh\" \"$@\"' _"
-formal = "bash -c 'cd \"$INIT_CWD\" && SBY_REL=$(realpath --relative-to=\"$PIXI_PROJECT_ROOT\" \"$1\") && cd \"$PIXI_PROJECT_ROOT\" && BASENAME=$(basename \"$SBY_REL\" .sby) && exec sby -f \"$SBY_REL\" --prefix \"build/formal/$BASENAME\"' _"
-
+setup-sby = { cmd = "rm -rf /tmp/sby-src-microarch && git clone --depth 1 https://github.com/YosysHQ/sby /tmp/sby-src-microarch && make -C /tmp/sby-src-microarch install PREFIX=$CONDA_PREFIX && rm -rf /tmp/sby-src-microarch", description = "One-time: build SymbiYosys (sby) from source into the pixi env (it is not on conda-forge)." }
+setup-bender = { cmd = "curl --proto '=https' --tlsv1.2 https://pulp-platform.github.io/bender/init -sSf | sh", description = "One-time: install the Bender package manager into ~/.cargo/bin." }
+lint = { cmd = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && MOD=$(grep -oP \"(?<=^module )\\w+\" \"$1\" | head -1) && exec verilator --lint-only -Wall -Wno-GENUNNAMED -Wno-DECLFILENAME $INCDIRS $SOURCES --top-module \"$MOD\"' _", description = "Verilator-lint one RTL file against the full Bender source list. Usage: pixi run lint <file.sv>" }
+lint-all = { cmd = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && INCDIRS=$(bender script flist-plus --only-includes) && SOURCES=$(bender script flist-plus --only-sources); cd \"$INIT_CWD\" && exec verilator --lint-only -Wall -Wno-GENUNNAMED -Wno-DECLFILENAME -Wno-MULTITOP $INCDIRS $SOURCES \"$@\"' _", description = "Verilator-lint every RTL source in the default (synthesis) Bender file list." }
+sweep-widths = { cmd = "bash -c 'cd \"$INIT_CWD\" && exec \"$PIXI_PROJECT_ROOT/scripts/sweep_widths.sh\" \"$@\"' _", description = "Run one cocotb testbench at several WIDTH values. Usage: pixi run sweep-widths <tb-dir> <width>..." }
+run-regression = { cmd = "bash -c 'exec \"$PIXI_PROJECT_ROOT/scripts/run_regression.sh\"'", description = "Run every cocotb testbench plus the common/verif pytest unit tests; non-zero exit on any failure." }
+run-formal = { cmd = "bash -c 'exec \"$PIXI_PROJECT_ROOT/scripts/run_formal.sh\"'", description = "Run every SymbiYosys proof (blocks/*/verif/formal/*/*.sby); non-zero exit on any failure." }
+setup-hooks = { cmd = "pre-commit install", description = "One-time per clone: install the Python pre-commit hooks (ruff, ty). See ADR 0026." }
+lint-py = { cmd = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && ruff check . && ruff format --check . && ty check'", description = "Check Python code: ruff lint, ruff format --check, ty. Changes nothing." }
+fix-py = { cmd = "bash -c 'cd \"$PIXI_PROJECT_ROOT\" && ruff check --fix . && ruff format . && ty check'", description = "Auto-fix Python lint and formatting with ruff, then run ty (type errors must be fixed by hand)." }
+render-waveform = { cmd = "bash -c 'cd \"$INIT_CWD\" && exec \"$PIXI_PROJECT_ROOT/scripts/render_waveform.sh\" \"$@\"' _", description = "Render a WaveDrom .json timing diagram to .svg. Usage: pixi run render-waveform <file.json> [out.svg]" }
+formal = { cmd = "bash -c 'cd \"$INIT_CWD\" && SBY_REL=$(realpath --relative-to=\"$PIXI_PROJECT_ROOT\" \"$1\") && cd \"$PIXI_PROJECT_ROOT\" && BASENAME=$(basename \"$SBY_REL\" .sby) && exec sby -f \"$SBY_REL\" --prefix \"build/formal/$BASENAME\"' _", description = "Run one SymbiYosys proof, output under build/formal/. Usage: pixi run formal <file.sby>" }
 [dependencies]
 verilator = ">=5.50,<6"
 yosys = ">=0.67,<0.68"
@@ -24,6 +26,8 @@ libz3 = ">=4.16.0,<5"
 cocotb = ">=2.0.1,<3"
 ty = ">=0.0.70,<0.0.71"
 pytest = ">=9.1.1,<10"
+ruff = ">=0.16.10,<0.17"
+pre-commit = ">=4.6.2,<5"
 
 [pypi-dependencies]
 cocotbext-axi = ">=0.1.26, <0.2"

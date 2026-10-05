@@ -2,6 +2,7 @@ import random
 from collections import deque
 
 import cocotb
+
 from ma_clkrst import clock_step, drive, reset_dut, sample_pre_edge, start_clock
 
 # module port definition
@@ -137,7 +138,9 @@ def test_scc_matches_known_cases():
     wrong: 011 and 101 are maximally negatively correlated (SCC must be
     exactly -1.0)."""
     result = scc([0, 1, 1], [1, 0, 1])
-    assert abs(result - (-1.0)) < 1e-9, f"SCC formula regression: expected -1.0 for 011/101, got {result}"
+    assert abs(result - (-1.0)) < 1e-9, (
+        f"SCC formula regression: expected -1.0 for 011/101, got {result}"
+    )
 
 
 async def drive_idle(dut):
@@ -210,7 +213,9 @@ async def matches_independent_golden_model_with_scoreboard(dut):
         await clock_step(dut)
 
         if consume:
-            assert expected_queue, "DUT reported a consumed output but the golden scoreboard queue is empty"
+            assert expected_queue, (
+                "DUT reported a consumed output but the golden scoreboard queue is empty"
+            )
             exp_a, exp_b = expected_queue.popleft()
             assert prev_out_a == exp_a and prev_out_b == exp_b, (
                 f"consumed output ({prev_out_a},{prev_out_b}) != expected ({exp_a},{exp_b})"
@@ -228,7 +233,9 @@ async def matches_independent_golden_model_with_scoreboard(dut):
         new_out_b = int(dut.stochastic_out_b.value)
 
         if not accept and not consume:
-            assert new_out_valid == prev_out_valid, "output valid changed on a cycle with neither accept nor consume"
+            assert new_out_valid == prev_out_valid, (
+                "output valid changed on a cycle with neither accept nor consume"
+            )
             if prev_out_valid:
                 assert new_out_a == prev_out_a and new_out_b == prev_out_b, (
                     "output data changed while held (not accepted, not consumed) -- must stay stable under backpressure"
@@ -236,7 +243,9 @@ async def matches_independent_golden_model_with_scoreboard(dut):
 
         prev_out_valid, prev_out_a, prev_out_b = new_out_valid, new_out_a, new_out_b
 
-    assert accepts > 0 and consumes > 0, "randomized run produced no accepts/consumes -- test is not exercising the DUT"
+    assert accepts > 0 and consumes > 0, (
+        "randomized run produced no accepts/consumes -- test is not exercising the DUT"
+    )
 
 
 @cocotb.test()
@@ -339,7 +348,9 @@ async def decorrelates_fully_correlated_inputs(dut):
     input_scc = scc(in_stream, in_stream)
     output_scc = scc(out_a_stream, out_b_stream)
 
-    assert input_scc > 0.99, f"sanity check failed: input SCC should be ~1.0 by construction, got {input_scc:.4f}"
+    assert input_scc > 0.99, (
+        f"sanity check failed: input SCC should be ~1.0 by construction, got {input_scc:.4f}"
+    )
     assert abs(output_scc) < 0.5, (
         f"output SCC {output_scc:.4f} is not meaningfully decorrelated from the input's SCC={input_scc:.4f} -- "
         f"the rotating comparator mechanism is not working as intended"

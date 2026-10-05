@@ -103,7 +103,11 @@ def pack_req(layout: AxisReqLayout, *, tvalid: bool, tlast: bool, tdata: int) ->
             f"[{layout.tdata_min}, {layout.tdata_max}]"
         )
     raw = tdata & ((1 << layout.data_width) - 1)  # two's complement if negative
-    return (int(bool(tvalid)) << layout.tvalid_bit) | (int(bool(tlast)) << layout.tlast_bit) | raw
+    return (
+        (int(bool(tvalid)) << layout.tvalid_bit)
+        | (int(bool(tlast)) << layout.tlast_bit)
+        | raw
+    )
 
 
 def unpack_req(layout: AxisReqLayout, value: SupportsInt) -> AxisReq:

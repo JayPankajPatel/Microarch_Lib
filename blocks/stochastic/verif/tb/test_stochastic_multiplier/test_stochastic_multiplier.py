@@ -2,6 +2,7 @@ import random
 
 import cocotb
 from cocotb.triggers import RisingEdge
+
 from ma_clkrst import reset_dut, start_clock
 
 # module port definition
@@ -57,9 +58,15 @@ async def basic_both_ready_every_cycle(dut):
         dut.stochastic_in_b.value = bit_b
         await RisingEdge(dut.clk)
 
-        assert dut.ready_stochastic_in_a.value == 1, "A should be ready -- B and downstream are both ready"
-        assert dut.ready_stochastic_in_b.value == 1, "B should be ready -- A and downstream are both ready"
-        assert dut.valid_stochastic_out.value == 1, "output should be valid every cycle when both inputs are"
+        assert dut.ready_stochastic_in_a.value == 1, (
+            "A should be ready -- B and downstream are both ready"
+        )
+        assert dut.ready_stochastic_in_b.value == 1, (
+            "B should be ready -- A and downstream are both ready"
+        )
+        assert dut.valid_stochastic_out.value == 1, (
+            "output should be valid every cycle when both inputs are"
+        )
         assert int(dut.stochastic_out.value) == golden_model(bit_a, bit_b), (
             f"stochastic_out={int(dut.stochastic_out.value)} != golden model expected "
             f"{golden_model(bit_a, bit_b)} for a={bit_a}, b={bit_b}"
@@ -97,7 +104,9 @@ async def one_operand_stall_holds_no_fire(dut):
         # valid_stochastic_out = valid_a && valid_b regardless of readiness
         # on either side (AMBA-style: VALID must not wait for READY) -- with
         # B not valid, no output fires, independent of what ready_b reads.
-        assert dut.valid_stochastic_out.value == 0, "no output should fire while B is stalled"
+        assert dut.valid_stochastic_out.value == 0, (
+            "no output should fire while B is stalled"
+        )
 
     # release B -- now both fire
     dut.valid_stochastic_in_b.value = 1
@@ -135,8 +144,12 @@ async def downstream_stall_holds_backpressure_on_both_operands(dut):
 
     for _ in range(10):
         await RisingEdge(dut.clk)
-        assert dut.ready_stochastic_in_a.value == 0, "downstream not ready -- A must not be told ready"
-        assert dut.ready_stochastic_in_b.value == 0, "downstream not ready -- B must not be told ready"
+        assert dut.ready_stochastic_in_a.value == 0, (
+            "downstream not ready -- A must not be told ready"
+        )
+        assert dut.ready_stochastic_in_b.value == 0, (
+            "downstream not ready -- B must not be told ready"
+        )
         assert dut.valid_stochastic_out.value == 1, (
             "valid_stochastic_out should still reflect valid_a && valid_b -- VALID must not wait for READY"
         )
@@ -216,7 +229,9 @@ async def back_to_back_streaming_random_join(dut):
         if dut.valid_stochastic_out.value == 1 and ready_out:
             out_stream.append(int(dut.stochastic_out.value))
 
-    assert len(consumed_a) > 0, "randomized run produced zero transfers -- test is not exercising the join"
+    assert len(consumed_a) > 0, (
+        "randomized run produced zero transfers -- test is not exercising the join"
+    )
     assert len(consumed_a) == len(consumed_b) == len(out_stream), (
         f"streams desynced: {len(consumed_a)} bits consumed from A, {len(consumed_b)} from B, "
         f"{len(out_stream)} produced on output -- these must all advance together, one per real transfer"

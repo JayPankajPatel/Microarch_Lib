@@ -2,8 +2,9 @@ import random
 
 import cocotb
 from cocotb.triggers import RisingEdge
-from ma_clkrst import reset_dut, start_clock
 from pylfsr import LFSR
+
+from ma_clkrst import reset_dut, start_clock
 
 # module port definition
 # module stochastic_adder #(
@@ -34,9 +35,23 @@ from pylfsr import LFSR
 # tb dirs' copies (see test_binary_to_stochastic/test_binary_stochastic.py
 # for why this is duplicated rather than imported).
 TAPS_LUT = {
-    0: 0x0, 1: 0x0, 2: 0x1, 3: 0x1, 4: 0x4, 5: 0x4, 6: 0x10, 7: 0x20,
-    8: 0x38, 9: 0x10, 10: 0x40, 11: 0x100, 12: 0x29, 13: 0x241, 14: 0x409,
-    15: 0x2000, 16: 0x406,
+    0: 0x0,
+    1: 0x0,
+    2: 0x1,
+    3: 0x1,
+    4: 0x4,
+    5: 0x4,
+    6: 0x10,
+    7: 0x20,
+    8: 0x38,
+    9: 0x10,
+    10: 0x40,
+    11: 0x100,
+    12: 0x29,
+    13: 0x241,
+    14: 0x409,
+    15: 0x2000,
+    16: 0x406,
 }
 
 
@@ -140,7 +155,9 @@ async def one_operand_stall_holds_no_fire(dut):
         assert dut.ready_stochastic_in_a.value == 0, (
             "A must not be told ready while B has no valid bit -- consuming from A alone would desync the streams"
         )
-        assert dut.valid_stochastic_out.value == 0, "no output should fire while B is stalled"
+        assert dut.valid_stochastic_out.value == 0, (
+            "no output should fire while B is stalled"
+        )
         assert int(dut.select_lfsr_out.value) == select_state_before, (
             "select LFSR must not advance on a cycle no bit is actually produced"
         )
@@ -251,7 +268,9 @@ async def back_to_back_streaming_random_join(dut):
             consumed_b.append(bit_b)
             out_stream.append(int(dut.stochastic_out.value))
 
-    assert select_idx > 0, "randomized run produced zero real transfers -- test is not exercising the join"
+    assert select_idx > 0, (
+        "randomized run produced zero real transfers -- test is not exercising the join"
+    )
     assert len(consumed_a) == len(consumed_b) == len(out_stream) == select_idx
 
 

@@ -2,6 +2,7 @@ import random
 
 import cocotb
 from cocotb.triggers import RisingEdge
+
 from ma_clkrst import reset_dut, start_clock
 
 # Integration test: two binary_stochastic_converter encoders -> a shared
@@ -132,9 +133,12 @@ async def sum_matches_golden_model_over_multiple_windows(dut):
             ones_in_window = 0
             if windows_seen >= 3:
                 break
-        if int(dut.u_adder.valid_stochastic_out.value) == 1 and int(
-            dut.u_adder.ready_stochastic_out.value
-        ) == 1:
+        if (
+            int(dut.u_adder.valid_stochastic_out.value) == 1
+            and int(dut.u_adder.ready_stochastic_out.value) == 1
+        ):
             ones_in_window += int(dut.u_adder.stochastic_out.value)
     else:
-        raise AssertionError(f"only observed {windows_seen} windows in {max_cycles} cycles")
+        raise AssertionError(
+            f"only observed {windows_seen} windows in {max_cycles} cycles"
+        )

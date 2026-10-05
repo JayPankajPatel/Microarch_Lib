@@ -70,13 +70,33 @@ flip-flops without an async reset input (see [ADR 0020](docs/adr/0020-synchronou
 
 ```sh
 scripts/setup.sh              # install dependencies
-pixi run lint <file.sv>       # Verilator lint of one file
-pixi run run-regression       # run every cocotb testbench
+pixi run setup-hooks          # once per clone: Python pre-commit hooks
+pixi run run-regression       # run every cocotb testbench + helper unit tests
 pixi run run-formal           # run every SymbiYosys proof
-pixi run formal <file.sby>    # run one SymbiYosys proof
 ```
 
-Other tasks: `lint-all`, `sweep-widths`, `render-waveform`, `setup-sby`. See `pixi.toml`.
+All tasks (`pixi task list` prints these descriptions from `pixi.toml`):
+
+| Task | What it does |
+|---|---|
+| **Setup** | |
+| `setup-sby` | One-time: build SymbiYosys from source into the pixi env (not on conda-forge). |
+| `setup-bender` | One-time: install Bender into `~/.cargo/bin`. |
+| `setup-hooks` | One-time per clone: install the Python pre-commit hooks (ruff, ty). |
+| **RTL** | |
+| `lint <file.sv>` | Verilator-lint one RTL file against the full Bender source list. |
+| `lint-all` | Verilator-lint every RTL source in the default (synthesis) Bender file list. |
+| **Simulation** | |
+| `run-regression` | Every cocotb testbench plus the `common/verif` pytest unit tests. |
+| `sweep-widths <tb-dir> <width>...` | One cocotb testbench at several `WIDTH` values. |
+| **Formal** | |
+| `run-formal` | Every SymbiYosys proof (`blocks/*/verif/formal/*/*.sby`). |
+| `formal <file.sby>` | One SymbiYosys proof; output under `build/formal/`. |
+| **Python** | |
+| `lint-py` | Check Python: ruff lint, ruff format check, ty. Changes nothing. |
+| `fix-py` | Auto-fix Python lint and formatting with ruff, then run ty. |
+| **Docs** | |
+| `render-waveform <file.json> [out.svg]` | Render a WaveDrom timing diagram to SVG. |
 
 ## Dependencies
 

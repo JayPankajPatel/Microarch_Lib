@@ -1,8 +1,9 @@
 import random
 
 import cocotb
-from ma_clkrst import clock_step, drive, reset_dut, start_clock
 from pylfsr import LFSR
+
+from ma_clkrst import clock_step, drive, reset_dut, start_clock
 
 # interface
 # module binary_stochastic_converter #(
@@ -55,18 +56,70 @@ from pylfsr import LFSR
 # each block's testbench directory is self-contained -- see common.mk's
 # PYTHONPATH, which only exposes common/verif, not sibling tb/ directories.)
 TAPS_LUT = {
-    0: 0x0, 1: 0x0, 2: 0x1, 3: 0x1, 4: 0x4, 5: 0x4, 6: 0x10, 7: 0x20,
-    8: 0x38, 9: 0x10, 10: 0x40, 11: 0x100, 12: 0x29, 13: 0x241, 14: 0x409,
-    15: 0x2000, 16: 0x406, 17: 0x2000, 18: 0x400, 19: 0x1101, 20: 0x10000,
-    21: 0x40000, 22: 0x100000, 23: 0x20000, 24: 0x104001, 25: 0x200000,
-    26: 0x142, 27: 0x13, 28: 0x1000000, 29: 0x4000000, 30: 0x4020001,
-    31: 0x8000000, 32: 0x200003, 33: 0x1000, 34: 0xC02, 35: 0x2, 36: 0x400,
-    37: 0xA02, 38: 0x14002000, 39: 0x8, 40: 0x140002, 41: 0x4,
-    42: 0x4020000040, 43: 0x38, 44: 0x32, 45: 0x40080040000, 46: 0xC00001,
-    47: 0x10, 48: 0x400002001000, 49: 0x100, 50: 0x10080002000,
-    51: 0x1200010, 52: 0x4, 53: 0x400100200, 54: 0x20000010080,
-    55: 0x800000, 56: 0x4024000, 57: 0x40, 58: 0x40000, 59: 0x300002,
-    60: 0x1, 61: 0x200000040001000, 62: 0x8000010000040, 63: 0x1,
+    0: 0x0,
+    1: 0x0,
+    2: 0x1,
+    3: 0x1,
+    4: 0x4,
+    5: 0x4,
+    6: 0x10,
+    7: 0x20,
+    8: 0x38,
+    9: 0x10,
+    10: 0x40,
+    11: 0x100,
+    12: 0x29,
+    13: 0x241,
+    14: 0x409,
+    15: 0x2000,
+    16: 0x406,
+    17: 0x2000,
+    18: 0x400,
+    19: 0x1101,
+    20: 0x10000,
+    21: 0x40000,
+    22: 0x100000,
+    23: 0x20000,
+    24: 0x104001,
+    25: 0x200000,
+    26: 0x142,
+    27: 0x13,
+    28: 0x1000000,
+    29: 0x4000000,
+    30: 0x4020001,
+    31: 0x8000000,
+    32: 0x200003,
+    33: 0x1000,
+    34: 0xC02,
+    35: 0x2,
+    36: 0x400,
+    37: 0xA02,
+    38: 0x14002000,
+    39: 0x8,
+    40: 0x140002,
+    41: 0x4,
+    42: 0x4020000040,
+    43: 0x38,
+    44: 0x32,
+    45: 0x40080040000,
+    46: 0xC00001,
+    47: 0x10,
+    48: 0x400002001000,
+    49: 0x100,
+    50: 0x10080002000,
+    51: 0x1200010,
+    52: 0x4,
+    53: 0x400100200,
+    54: 0x20000010080,
+    55: 0x800000,
+    56: 0x4024000,
+    57: 0x40,
+    58: 0x40000,
+    59: 0x300002,
+    60: 0x1,
+    61: 0x200000040001000,
+    62: 0x8000010000040,
+    63: 0x1,
     64: 0x4040000000000020,
 }
 
@@ -146,13 +199,23 @@ async def accept_transfer(dut, binary_in_value):
     Callers that need valid_binary_in dropped do so via stream_burst's
     `drop_valid_binary_in` (default True), which folds it into the first
     drive() *inside* the loop instead of spending a standalone one here."""
-    await drive(dut, binary_in=binary_in_value, valid_binary_in=1, ready_stochastic_out=1)
+    await drive(
+        dut, binary_in=binary_in_value, valid_binary_in=1, ready_stochastic_out=1
+    )
     await clock_step(dut)
-    assert dut.ready_binary_in.value == 0, "acceptance should fire on the very first edge from idle"
+    assert dut.ready_binary_in.value == 0, (
+        "acceptance should fire on the very first edge from idle"
+    )
 
 
-async def stream_burst(dut, expected_bits, stall_at=None, stall_len=0,
-                        drop_valid_binary_in=True, extra_first_drive=None):
+async def stream_burst(
+    dut,
+    expected_bits,
+    stall_at=None,
+    stall_len=0,
+    drop_valid_binary_in=True,
+    extra_first_drive=None,
+):
     """Consume one full burst, checking each bit against `expected_bits`
     (from golden_model) and the valid/ready protocol. `stall_at` (if given)
     is the bit index at which to hold ready_stochastic_out low for
@@ -172,9 +235,9 @@ async def stream_burst(dut, expected_bits, stall_at=None, stall_len=0,
         pending_drive["valid_binary_in"] = 0
 
     while bits_consumed < len(expected_bits):
-        assert (
-            dut.valid_stochastic_out.value == 1
-        ), f"valid_stochastic_out dropped mid-burst at bit {bits_consumed}"
+        assert dut.valid_stochastic_out.value == 1, (
+            f"valid_stochastic_out dropped mid-burst at bit {bits_consumed}"
+        )
         saw_valid = True
 
         expected_bit = expected_bits[bits_consumed]
@@ -190,8 +253,12 @@ async def stream_burst(dut, expected_bits, stall_at=None, stall_len=0,
             pending_drive = {}
             for _ in range(stall_len):
                 await clock_step(dut)
-                assert dut.valid_stochastic_out.value == 1, "valid_stochastic_out must stay asserted through a stall"
-                assert int(dut.stochastic_out.value) == held_bit, "stochastic_out must hold steady while stalled"
+                assert dut.valid_stochastic_out.value == 1, (
+                    "valid_stochastic_out must stay asserted through a stall"
+                )
+                assert int(dut.stochastic_out.value) == held_bit, (
+                    "stochastic_out must hold steady while stalled"
+                )
 
             await drive(dut, ready_stochastic_out=1)
             await clock_step(dut)
@@ -275,9 +342,9 @@ async def single_transfer_matches_waveform_protocol(dut):
     await drive(dut)
     await clock_step(dut)
     assert dut.valid_stochastic_out.value == 0, "valid must drop after the last bit"
-    assert (
-        dut.ready_binary_in.value == 1
-    ), "ready_binary_in must reassert after the burst"
+    assert dut.ready_binary_in.value == 1, (
+        "ready_binary_in must reassert after the burst"
+    )
 
 
 @cocotb.test()
@@ -382,7 +449,9 @@ async def continuous_valid_binary_in_zero_bubble_back_to_back(dut):
 
     await drive(dut, binary_in=binary_in_1, valid_binary_in=1, ready_stochastic_out=1)
     await clock_step(dut)
-    assert dut.ready_binary_in.value == 0, "acceptance should fire on the very first edge from idle"
+    assert dut.ready_binary_in.value == 0, (
+        "acceptance should fire on the very first edge from idle"
+    )
 
     # Burst 1 accepted. Immediately swap binary_in to the second value while
     # keeping valid_binary_in asserted the whole time -- this is the
@@ -393,8 +462,12 @@ async def continuous_valid_binary_in_zero_bubble_back_to_back(dut):
     # keeps valid_binary_in held) rather than a standalone drive() here --
     # two drive()s with no clock_step() between them silently skips a full
     # cycle (see accept_transfer's docstring, docs/adr/0021).
-    await stream_burst(dut, expected_bits_1, drop_valid_binary_in=False,
-                        extra_first_drive={"binary_in": binary_in_2})
+    await stream_burst(
+        dut,
+        expected_bits_1,
+        drop_valid_binary_in=False,
+        extra_first_drive={"binary_in": binary_in_2},
+    )
 
     # This is the one register-latency idle cycle every registered-output
     # FSM needs: ready_binary_in has *just* become 1 (rin computed on the

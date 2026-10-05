@@ -1,6 +1,7 @@
 import random
 
 import cocotb
+
 from ma_clkrst import clock_step, drive, reset_dut, start_clock
 
 # module port definition
@@ -58,7 +59,9 @@ async def smoke_test(dut):
     width = len(dut.binary_out)
     max_cycles = (1 << width) - 1
     start_clock(dut.clk, period_ns)
-    await drive(dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0)
+    await drive(
+        dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0
+    )
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     sto_buffer = []
@@ -82,7 +85,9 @@ async def smoke_test(dut):
     await clock_step(dut)
 
     expected = golden_model(sto_buffer)
-    assert dut.valid_binary_out.value == 1, "valid_binary_out should assert once the window completes"
+    assert dut.valid_binary_out.value == 1, (
+        "valid_binary_out should assert once the window completes"
+    )
     assert int(dut.binary_out.value) == expected, (
         f"binary_out={int(dut.binary_out.value)} != golden model expected {expected}"
     )
@@ -100,7 +105,9 @@ async def mid_accumulation_stall_ignores_ready_binary_out(dut):
     width = len(dut.binary_out)
     max_cycles = (1 << width) - 1
     start_clock(dut.clk, period_ns)
-    await drive(dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0)
+    await drive(
+        dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0
+    )
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     sto_buffer = []
@@ -149,7 +156,9 @@ async def valid_binary_out_should_hold_through_post_completion_stall(dut):
     width = len(dut.binary_out)
     max_cycles = (1 << width) - 1
     start_clock(dut.clk, period_ns)
-    await drive(dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0)
+    await drive(
+        dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0
+    )
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     sto_buffer = []
@@ -187,12 +196,18 @@ async def valid_binary_out_should_hold_through_post_completion_stall(dut):
 
     for _ in range(3):
         await clock_step(dut)
-        assert dut.valid_binary_out.value == 1, "valid_binary_out must stay asserted through the stall"
-        assert int(dut.binary_out.value) == expected, "binary_out must stay stable while stalled"
+        assert dut.valid_binary_out.value == 1, (
+            "valid_binary_out must stay asserted through the stall"
+        )
+        assert int(dut.binary_out.value) == expected, (
+            "binary_out must stay stable while stalled"
+        )
 
     await drive(dut, ready_binary_out=1)
     await clock_step(dut)
-    assert dut.valid_binary_out.value == 0, "valid_binary_out should drop once the handshake completes"
+    assert dut.valid_binary_out.value == 0, (
+        "valid_binary_out should drop once the handshake completes"
+    )
 
 
 @cocotb.test()
@@ -216,7 +231,9 @@ async def transient_ready_before_valid_must_not_drop_result(dut):
     width = len(dut.binary_out)
     max_cycles = (1 << width) - 1
     start_clock(dut.clk, period_ns)
-    await drive(dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0)
+    await drive(
+        dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0
+    )
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     sto_buffer = []
@@ -230,7 +247,13 @@ async def transient_ready_before_valid_must_not_drop_result(dut):
             # visible. A consumer's ready is legally allowed to do this;
             # it must not be mistaken for a real handshake against THIS
             # result.
-            await drive(dut, valid_stochastic_in=1, stochastic_in=dut_in, boundary_in=1, ready_binary_out=1)
+            await drive(
+                dut,
+                valid_stochastic_in=1,
+                stochastic_in=dut_in,
+                boundary_in=1,
+                ready_binary_out=1,
+            )
             await clock_step(dut)
             await drive(dut, ready_binary_out=0)
             continue
@@ -241,7 +264,9 @@ async def transient_ready_before_valid_must_not_drop_result(dut):
     await clock_step(dut)
 
     expected = golden_model(sto_buffer)
-    assert dut.valid_binary_out.value == 1, "result was dropped without ready and valid ever having been true on the same cycle"
+    assert dut.valid_binary_out.value == 1, (
+        "result was dropped without ready and valid ever having been true on the same cycle"
+    )
     assert int(dut.binary_out.value) == expected
 
     for _ in range(3):
@@ -250,7 +275,9 @@ async def transient_ready_before_valid_must_not_drop_result(dut):
         assert dut.valid_binary_out.value == 1, (
             "result was dropped without ready and valid ever having been true on the same cycle"
         )
-        assert int(dut.binary_out.value) == expected, "binary_out must stay stable while the result is unconsumed"
+        assert int(dut.binary_out.value) == expected, (
+            "binary_out must stay stable while the result is unconsumed"
+        )
 
     await drive(dut, ready_binary_out=1)
     await clock_step(dut)
@@ -278,7 +305,9 @@ async def simultaneous_output_drain_and_input_accept_must_not_drop_input(dut):
     width = len(dut.binary_out)
     max_cycles = (1 << width) - 1
     start_clock(dut.clk, period_ns)
-    await drive(dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0)
+    await drive(
+        dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0
+    )
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     # Window 1: complete it with ready_binary_out held low, so its result
@@ -311,7 +340,9 @@ async def simultaneous_output_drain_and_input_accept_must_not_drop_input(dut):
     # ready_stochastic_in must already be high here (last_sample_seen was
     # cleared when window 1's result was latched), so this sample IS
     # accepted on this exact edge per the handshake contract.
-    assert dut.ready_stochastic_in.value == 1, "decoder should already be accepting window 2's samples"
+    assert dut.ready_stochastic_in.value == 1, (
+        "decoder should already be accepting window 2's samples"
+    )
     await drive(
         dut,
         valid_stochastic_in=1,
@@ -323,7 +354,11 @@ async def simultaneous_output_drain_and_input_accept_must_not_drop_input(dut):
 
     # Remaining samples of window 2, streamed normally.
     for i in range(1, max_cycles):
-        await drive(dut, stochastic_in=window_2_bits[i], boundary_in=1 if i == max_cycles - 1 else 0)
+        await drive(
+            dut,
+            stochastic_in=window_2_bits[i],
+            boundary_in=1 if i == max_cycles - 1 else 0,
+        )
         await clock_step(dut)
 
     await clock_step(dut)
@@ -347,7 +382,9 @@ async def back_to_back_windows(dut):
     width = len(dut.binary_out)
     max_cycles = (1 << width) - 1
     start_clock(dut.clk, period_ns)
-    await drive(dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0)
+    await drive(
+        dut, valid_stochastic_in=0, stochastic_in=0, boundary_in=0, ready_binary_out=0
+    )
     await reset_dut(dut.rst_n, dut.clk, 5)
 
     window_1 = []
@@ -378,7 +415,9 @@ async def back_to_back_windows(dut):
         f"binary_out={int(dut.binary_out.value)} != golden model expected {expected_1} "
         f"for window 1 ({window_1})"
     )
-    assert dut.ready_stochastic_in.value == 1, "decoder should already be ready to accept window 2's samples"
+    assert dut.ready_stochastic_in.value == 1, (
+        "decoder should already be ready to accept window 2's samples"
+    )
 
     for i in range(max_cycles):
         dut_in = random.randint(0, 1)
