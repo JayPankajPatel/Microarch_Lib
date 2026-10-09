@@ -2,17 +2,13 @@
 // checkers on both ports. axis_fifo.sv itself contains no verification code.
 // See docs/adr/0025.
 
+`include "ma_sva.svh"
+
 module axis_fifo_formal_env (
     input logic clk,
     input logic rst
 );
-  // Every trace starts in reset (active-high rst).
-  // The initializer is the formal initial state (formal-only idiom).
-  // verilator lint_off PROCASSINIT
-  logic f_past_valid = 1'b0;
-  // verilator lint_on PROCASSINIT
-  always @(posedge clk) f_past_valid <= 1'b1;
-  always @(posedge clk) if (!f_past_valid) assume (rst);
+  `MA_ASSUME_RESET_AT_START(clk, rst)  // active-high reset
 endmodule : axis_fifo_formal_env
 
 bind axis_fifo axis_fifo_formal_env u_formal_env (.clk(clk), .rst(rst));

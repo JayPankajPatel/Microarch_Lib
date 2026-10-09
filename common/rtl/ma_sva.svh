@@ -24,4 +24,18 @@ __name: cover property ( \
     @(posedge __clock) disable iff (__reset) (__expr) \
 );
 
+// Formal environment: assume every trace starts in reset.
+// __rst_asserted is the condition meaning "reset is active" -- pass !rst_n
+// for an active-low reset, rst for an active-high one. Declares
+// ma_f_past_valid, which is 0 only at the first step (where $past has no
+// history); properties in the same scope may use it as a $past guard.
+// The initializer is the formal initial state (formal-only idiom), hence
+// the PROCASSINIT waiver. Use at most once per module scope.
+`define MA_ASSUME_RESET_AT_START(__clock, __rst_asserted) \
+/* verilator lint_off PROCASSINIT */ \
+logic ma_f_past_valid = 1'b0; \
+/* verilator lint_on PROCASSINIT */ \
+always @(posedge __clock) ma_f_past_valid <= 1'b1; \
+always @(posedge __clock) if (!ma_f_past_valid) assume (__rst_asserted);
+
 `endif // MA_SVA_SVH

@@ -1,0 +1,1 @@
+{ "flags": "-I common/rtl --lint-only" }

@@ -44,7 +44,7 @@ blocks/<name>/
   docs/
     waveforms/           -- wavedrom JSON timing-diagram sources, plus their rendered .svg (both committed -- .svg regenerated via `pixi run render-waveform <path/to/diagram.json>` after editing the .json)
   verif/
-    formal/             -- one test_<name>/ dir per proof: a .sby (read_slang -D FORMAL, ADR 0024) plus, for blocks using reusable checkers, a <name>_bind.sv that binds common/verif/sva/ checkers and the reset-at-step-0 assume (ADR 0025)
+    formal/             -- one test_<name>/ dir per proof: a .sby (read_slang -D FORMAL, ADR 0024) plus, for blocks using reusable checkers, a <name>_bind.sv that binds common/verif/sva/ checkers and the reset-at-step-0 assume via `MA_ASSUME_RESET_AT_START` (ADR 0025)
     tb/                 -- cocotb testbenches, one directory per test (test_<name>/)
 ```
 

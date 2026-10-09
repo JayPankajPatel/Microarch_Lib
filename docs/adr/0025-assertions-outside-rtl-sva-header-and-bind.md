@@ -95,7 +95,10 @@ ADR 0024 makes `bind` reliable.
   next to the block's `.sby`)
   hold only wiring: one `bind` line per port, plus the environment
   assumption that every trace starts in reset (`f_past_valid` pattern,
-  ADR 0024). The checker states protocol rules only; the reset-at-cycle-0
+  ADR 0024). That assumption is the `` `MA_ASSUME_RESET_AT_START(clk,
+  rst_asserted) `` macro in `ma_sva.svh` (added 2026-10-05), usable both in
+  bind files and inline under `` `ifdef FORMAL ``; it also declares
+  `ma_f_past_valid` for `$past` guards. The checker states protocol rules only; the reset-at-cycle-0
   assumption belongs to the environment, not the protocol.
 - **Verification-only files are kept out of synthesis by the Bender
   `formal` target**, not by `` `ifdef ``. `lint-all` uses the default file
