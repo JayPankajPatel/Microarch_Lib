@@ -16,9 +16,9 @@ If several bits change together, each wire reaches the synchronizer flop at
 a slightly different time, so a sample taken during the change can catch some
 old bits and some new ones: a pointer value that was never on the counter.
 
-`dual_n_bit_gray_counter` keeps a binary pointer of `DATA_WIDTH + 1` bits,
+`dual_n_bit_gray_counter` keeps a binary pointer of `ADDR_WIDTH + 1` bits,
 converts it with `binary_to_gray`, and takes the memory address from the low
-`DATA_WIDTH` bits. The extra top bit distinguishes full from empty. The
+`ADDR_WIDTH` bits. The extra top bit distinguishes full from empty. The
 pointer therefore counts through `2 * DEPTH` values before it wraps. Whether
 the wrap is a single-bit change depends on `DEPTH`.
 
@@ -32,8 +32,8 @@ where is that enforced?
   simulation with ideal clocks will show.
 - The library is tapeout-bound (see `CLAUDE.md`); invalid configurations
   should fail at elaboration, not at silicon.
-- The pointer counter already derives the address width from `DATA_WIDTH`,
-  so its depth is `2**DATA_WIDTH` by construction.
+- The pointer counter already derives the address width from `ADDR_WIDTH`,
+  so its depth is `2**ADDR_WIDTH` by construction.
 
 ## Considered Options
 
@@ -96,11 +96,11 @@ not sufficient.
   its own does not need a power-of-two depth, so reusing it elsewhere inherits
   a constraint that comes from the FIFO. If that becomes a problem, move the
   check into the FIFO and relax the RAM.
-- This reasoning covers **depth only**. It says nothing about `DATA_WIDTH`;
-  the memory's current power-of-two *width* check (`Powerof2DataWidth`) is not
+- This reasoning covers **depth only**. It says nothing about `WIDTH`;
+  the memory's current power-of-two *width* check (`PowerOf2Width`) is not
   justified by this ADR and needs its own reason or should be removed.
 - The Gray property holds for the pointer range, not only the address. That
-  is why the pointer has `DATA_WIDTH + 1` bits and why `2 * DEPTH` is the
+  is why the pointer has `ADDR_WIDTH + 1` bits and why `2 * DEPTH` is the
   quantity that has to be a power of two (equivalent to `DEPTH` being one).
 
 ### Confirmation
@@ -121,7 +121,7 @@ depth=16 pointer range 0..31 max bits changed per step=1 (wrap 31->0: 1)
 ```
 
 Elaboration checks in `dual_port_ram` (Verilator 5.052 `--lint-only`,
-`-GDEPTH=<d> -GDATA_WIDTH=8`): depths 0 and 1 trigger `ValidDepth`; depth 0
+`-GDEPTH=<d> -GWIDTH=8`): depths 0 and 1 trigger `ValidDepth`; depth 0
 also triggers `Powerof2Addr`; depth 6 triggers `Powerof2Addr`; depths 2 and 8
 pass.
 

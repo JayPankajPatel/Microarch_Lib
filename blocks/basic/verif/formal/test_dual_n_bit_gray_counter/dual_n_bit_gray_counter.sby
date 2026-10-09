@@ -16,9 +16,9 @@ smtbmc z3
 
 [script]
 # See ADR 0024 (-D FORMAL) and ADR 0025 (bind file, check-count guard).
-prove_w2: read_slang -D FORMAL -Icommon/rtl binary_to_gray.sv dual_n_bit_gray_counter.sv dual_n_bit_gray_counter_bind.sv --top dual_n_bit_gray_counter -G DATA_WIDTH=2
-cover_w2: read_slang -D FORMAL -Icommon/rtl binary_to_gray.sv dual_n_bit_gray_counter.sv dual_n_bit_gray_counter_bind.sv --top dual_n_bit_gray_counter -G DATA_WIDTH=2
-prove_w8: read_slang -D FORMAL -Icommon/rtl binary_to_gray.sv dual_n_bit_gray_counter.sv dual_n_bit_gray_counter_bind.sv --top dual_n_bit_gray_counter -G DATA_WIDTH=8
+prove_w2: read_slang -D FORMAL -Icommon/rtl binary_to_gray.sv dual_n_bit_gray_counter.sv dual_n_bit_gray_counter_bind.sv --top dual_n_bit_gray_counter -G ADDR_WIDTH=2
+cover_w2: read_slang -D FORMAL -Icommon/rtl binary_to_gray.sv dual_n_bit_gray_counter.sv dual_n_bit_gray_counter_bind.sv --top dual_n_bit_gray_counter -G ADDR_WIDTH=2
+prove_w8: read_slang -D FORMAL -Icommon/rtl binary_to_gray.sv dual_n_bit_gray_counter.sv dual_n_bit_gray_counter_bind.sv --top dual_n_bit_gray_counter -G ADDR_WIDTH=8
 prep -top dual_n_bit_gray_counter
 select -assert-min 1 t:$check
 # A missing bind file is silent; this turns it into an ERROR (6 = 4 rules + 2 covers).

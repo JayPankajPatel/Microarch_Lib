@@ -2,7 +2,7 @@
 // Dual port ram intended to be inferred RAM block (BRAM for Xilinx terms)
 // 1 cycle delay when reading, buffer output
 module dual_port_ram #(
-    parameter int unsigned DATA_WIDTH = 0,
+    parameter int unsigned WIDTH = 0,
     parameter int unsigned DEPTH = 0
 ) (
     input logic wclk,
@@ -11,14 +11,14 @@ module dual_port_ram #(
     input logic ren,
     input logic [$clog2(DEPTH)-1:0] raddr,
     input logic [$clog2(DEPTH)-1:0] waddr,
-    input logic [DATA_WIDTH-1:0] wdata,
-    output logic [DATA_WIDTH-1:0] rdata
+    input logic [WIDTH-1:0] wdata,
+    output logic [WIDTH-1:0] rdata
 );
-  `MA_ASSERT_ELABOR(ValidDataWidth, DATA_WIDTH >= 1)
+  `MA_ASSERT_ELABOR(ValidWidth, WIDTH >= 1)
   `MA_ASSERT_ELABOR(ValidAddr, DEPTH >= 2)
-  `MA_ASSERT_ELABOR(PowerOf2DataWidth, (DATA_WIDTH > 0) && (DATA_WIDTH & DATA_WIDTH - 1) == 0)
+  `MA_ASSERT_ELABOR(PowerOf2Width, (WIDTH > 0) && (WIDTH & WIDTH - 1) == 0)
   `MA_ASSERT_ELABOR(PowerOf2Addr, (DEPTH > 0) && (DEPTH & DEPTH - 1) == 0)
-  logic [DATA_WIDTH-1:0] ram[DEPTH];
+  logic [WIDTH-1:0] ram[DEPTH];
 
   always_ff @(posedge wclk) begin
     if (wen) begin

@@ -14,7 +14,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, ReadOnly, RisingEdge, Timer
 
-DATA_WIDTH = int(os.environ.get("DATA_WIDTH", "8"))
+WIDTH = int(os.environ.get("WIDTH", "8"))
 DEPTH = int(os.environ.get("DEPTH", "16"))
 WCLK_NS = 10
 RCLK_NS = 14
@@ -53,7 +53,7 @@ async def read_word(dut, addr):
 
 def random_words(seed):
     rng = random.Random(seed)
-    return [rng.randrange(1 << DATA_WIDTH) for _ in range(DEPTH)]
+    return [rng.randrange(1 << WIDTH) for _ in range(DEPTH)]
 
 
 @cocotb.test()
@@ -79,7 +79,7 @@ async def read_back_every_address(dut):
 async def overwrite_returns_latest_value(dut):
     """A second write to the same address replaces the first."""
     start_clocks(dut)
-    first, second = 0x5A & ((1 << DATA_WIDTH) - 1), 0xA5 & ((1 << DATA_WIDTH) - 1)
+    first, second = 0x5A & ((1 << WIDTH) - 1), 0xA5 & ((1 << WIDTH) - 1)
     assert first != second
 
     await write_word(dut, 3, first)
@@ -92,7 +92,7 @@ async def overwrite_returns_latest_value(dut):
 async def no_write_when_wen_low(dut):
     """With wen low, wclk edges with a new waddr/wdata must not write."""
     start_clocks(dut)
-    keep, junk = 0x11 & ((1 << DATA_WIDTH) - 1), 0x22 & ((1 << DATA_WIDTH) - 1)
+    keep, junk = 0x11 & ((1 << WIDTH) - 1), 0x22 & ((1 << WIDTH) - 1)
     assert keep != junk
 
     await write_word(dut, 5, keep)

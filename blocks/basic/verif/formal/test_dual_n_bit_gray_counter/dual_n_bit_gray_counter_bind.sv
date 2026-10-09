@@ -13,7 +13,7 @@ module dual_n_bit_gray_counter_formal_env (
 endmodule : dual_n_bit_gray_counter_formal_env
 
 module dual_n_bit_gray_counter_checker #(
-    parameter int W = 2  // counter width in bits (DATA_WIDTH + 1)
+    parameter int W = 2  // counter width in bits (ADDR_WIDTH + 1)
 ) (
     input logic         clk,
     input logic         rst_n,
@@ -49,7 +49,7 @@ bind dual_n_bit_gray_counter dual_n_bit_gray_counter_formal_env u_formal_env (
 );
 
 bind dual_n_bit_gray_counter dual_n_bit_gray_counter_checker #(
-    .W(DATA_WIDTH + 1)
+    .W(ADDR_WIDTH + 1)
 ) u_chk (
     .clk(clk), .rst_n(rst_n), .en(en), .bin(r.bin), .gray(r.gray)
 );
